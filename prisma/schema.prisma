@@ -40,12 +40,13 @@ model User {
   notifications  Notification[]
   messages       Message[]
 
+
 }
 
 enum Role {
-  SELLER
-  BUYER
-  ADMIN
+  Seller
+  Buyer
+  Admin
 }
 
 model OAuthProvider {
