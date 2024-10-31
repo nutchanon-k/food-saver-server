@@ -1,0 +1,315 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  firstName      String   @map("first_name")
+  lastName       String   @map("last_name")
+  email          String   @unique
+  password       String?  @map("password")
+  role           Role     @default(Buyer)
+  profilePicture String?  @map("profile_picture")
+  address        String?  @map("address")
+  phoneNumber    String?  @map("phone_number")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  store          Store?
+  oauthProviders OAuthProvider[]
+  donations      Donation[]      @relation("SellerDonations")
+  reviews        Review[]
+  chatsAsBuyer   Chat[]          @relation("BuyerChats")
+  chatsAsSeller  Chat[]          @relation("SellerChats")
+  favoriteStores FavoriteStore[]
+  cartItems      CartItem[]
+  orders         Order[]
+  notifications  Notification[]
+  messages       Message[]
+
+  @@unique([firstName, lastName])
+}
+
+enum Role {
+  Seller
+  Buyer
+  Admin
+}
+
+model OAuthProvider {
+  id             Int               @id @default(autoincrement())
+  userId         Int               @map("user_id")
+  provider       OAuthProviderType
+  providerUserId String            @unique @map("provider_user_id")
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerUserId])
+}
+
+enum OAuthProviderType {
+  google
+  facebook
+  // Add other OAuth providers here
+}
+
+model Store {
+  id             Int         @id @default(autoincrement())
+  userId         Int         @unique @map("user_id")
+  storeName      String      @map("store_name")
+  storeAddress   String      @map("store_address")
+  storeDetails   String?     @map("store_details")
+  profilePicture String?     @map("profile_picture")
+  status         StoreStatus @default(open)
+  phoneNumber    String?     @map("phone_number")
+  timeOpen       DateTime    @map("time_open")
+  timeClose      DateTime    @map("time_close")
+  latitude       Float       @map("latitude")
+  longitude      Float       @map("longitude")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id])
+  products       Product[]
+  reviews        Review[]
+  favoriteStores FavoriteStore[]
+}
+
+enum StoreStatus {
+  open
+  closed
+}
+
+model Product {
+  id             Int       @id @default(autoincrement())
+  storeId        Int       @map("store_id")
+  name           String
+  description    String?   @map("description")
+  originalPrice  Decimal   @map("original_price") @db.Decimal(10, 2)
+  salePrice      Decimal   @map("sale_price") @db.Decimal(10, 2)
+  expirationDate DateTime? @map("expiration_date")
+  imageUrl       String    @map("image_url")
+  quantity       Int       @default(0)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  store             Store               @relation(fields: [storeId], references: [id])
+  reviews           Review[]
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  productCategories ProductCategories[]
+  productAllergens  Product_Allergen[]
+  productDonations  Product_Donation[]
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String? @map("description")
+
+  // Relations
+  productCategories ProductCategories[]
+}
+
+model Allergen {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String? @map("description")
+
+  // Relations
+  productAllergens Product_Allergen[]
+}
+
+model ProductCategories {
+  productId  Int @map("product_id")
+  categoryId Int @map("category_id")
+
+  // Relations
+  product  Product  @relation(fields: [productId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@id([productId, categoryId])
+}
+
+model Product_Allergen {
+  productId  Int @map("product_id")
+  allergenId Int @map("allergen_id")
+
+  // Relations
+  product  Product  @relation(fields: [productId], references: [id])
+  allergen Allergen @relation(fields: [allergenId], references: [id])
+
+  @@id([productId, allergenId])
+}
+
+model Product_Donation {
+  productId  Int @map("product_id")
+  donationId Int @map("donation_id")
+  quantity   Int
+
+  // Relations
+  product  Product  @relation(fields: [productId], references: [id])
+  donation Donation @relation(fields: [donationId], references: [id])
+
+  @@id([productId, donationId])
+}
+
+model Donation {
+  id           Int      @id @default(autoincrement())
+  sellerId     Int      @map("seller_id")
+  foundationId Int      @map("foundation_id")
+  imageUrl     String   @map("image_url")
+  isVerify     Boolean  @default(false) @map("is_verify")
+  donationDate DateTime @default(now()) @map("donation_date")
+
+  // Relations
+  seller           User               @relation("SellerDonations", fields: [sellerId], references: [id])
+  foundation       Foundation         @relation(fields: [foundationId], references: [id])
+  productDonations Product_Donation[]
+}
+
+model Foundation {
+  id             Int      @id @default(autoincrement())
+  name           String
+  contactInfo    String?  @map("contact_info")
+  address        String?  @map("address")
+  profilePicture String?  @map("profile_picture")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  donations Donation[]
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  storeId    Int?     @map("store_id")
+  productId  Int?     @map("product_id")
+  rating     Int
+  reviewText String?  @map("review_text")
+  image      String?  @map("image")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id])
+  store   Store?   @relation(fields: [storeId], references: [id])
+  product Product? @relation(fields: [productId], references: [id])
+}
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  buyerId   Int      @map("buyer_id")
+  sellerId  Int      @map("seller_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  buyer    User      @relation("BuyerChats", fields: [buyerId], references: [id])
+  seller   User      @relation("SellerChats", fields: [sellerId], references: [id])
+  messages Message[]
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  chatId      Int      @map("chat_id")
+  senderId    Int      @map("sender_id")
+  messageText String
+  sentAt      DateTime @default(now()) @map("sent_at")
+
+  // Relations
+  chat   Chat @relation(fields: [chatId], references: [id])
+  sender User @relation(fields: [senderId], references: [id])
+}
+
+model FavoriteStore {
+  userId    Int      @map("user_id")
+  storeId   Int      @map("store_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@id([userId, storeId])
+}
+
+model CartItem {
+  id        Int @id @default(autoincrement())
+  userId    Int @map("user_id")
+  productId Int @map("product_id")
+  quantity  Int
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @map("user_id")
+  totalPrice    Decimal       @map("total_price") @db.Decimal(10, 2)
+  paymentStatus PaymentStatus @default(Pending) @map("payment_status")
+  paymentMethod PaymentMethod @map("payment_method")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+
+enum PaymentStatus {
+  Pending
+  Completed
+  Failed
+}
+
+enum PaymentMethod {
+  PROMPTPAY
+  CREDIT_CARD
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int     @map("product_id")
+  quantity  Int
+  price     Decimal @map("price") @db.Decimal(10, 2)
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  type      String
+  content   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+
+
