@@ -216,4 +216,5 @@ const validateSchema = (schema) => (req, res, next) => {
 module.exports.createUserValidator = validateSchema(createUserSchema)
 module.exports.updateUserValidator = validateSchema(updateUserSchema)
 module.exports.loginValidator = validateSchema(loginSchema)
+
   
