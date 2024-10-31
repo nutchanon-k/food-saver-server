@@ -44,9 +44,9 @@ model User {
 }
 
 enum Role {
-  Seller
-  Buyer
-  Admin
+  SELLER
+  BUYER
+  ADMIN
 }
 
 model OAuthProvider {
