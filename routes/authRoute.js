@@ -6,7 +6,7 @@ const upload = require("../middlewares/upload");
 
 
 authRoute.post("/login",loginValidator, login)
-authRoute.post("/register",upload.single('picture'),createUserValidator, register)
+authRoute.post("/register",createUserValidator, register)
 
 // authRoute.post('/forgot-password', forgotPassword)
 // authRoute.patch('/reset-password',authenticate, resetPassword)

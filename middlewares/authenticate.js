@@ -23,7 +23,9 @@ module.exports.authenticate = async (req, res, next) => {
             }
             return user
         })
-        const user = await prisma.employee.findFirst({
+
+        // console.log("verifyUser", verifyUser)
+        const user = await prisma.user.findFirst({
             where: {
                 id: verifyUser.id
             },
@@ -32,6 +34,7 @@ module.exports.authenticate = async (req, res, next) => {
         if(!user){
             return createError(401, 'Unauthorized User invalid')
         }
+        // console.log(user)
 
         req.user = user
         

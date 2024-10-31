@@ -3,10 +3,10 @@ const jwt = require('jsonwebtoken')
 const createError = require('../utils/createError')
 const prisma = require('../configs/prisma')
 const nodemailer = require('nodemailer')
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const path = require('path')
 const fs = require('fs/promises') 
-const cloudinary = require('../config/cloudinary')
+const cloudinary = require('../configs/cloudinary')
 const getPublicId = require('../utils/getPublicId')
 const { getUserByEmail } = require("../services/userService");
 const { createUserService } = require("../services/authService");
@@ -46,8 +46,6 @@ module.exports.login = async (req, res, next) => {
     }
 }
 
-
-
 module.exports.register = async (req, res, next) => {
     try {
         const { firstName, lastName, email, password, confirmPassword, role ,address, phoneNumber} = req.body
@@ -62,17 +60,6 @@ module.exports.register = async (req, res, next) => {
             return createError(400, "User already exist")
         }
 
-        const haveFile = !!req.file
-        let uploadResult = {}
-        if (haveFile) {
-            uploadResult = await cloudinary.uploader.upload(req.file.path, {
-                overwrite: true,
-                public_id: path.parse(req.file.path).name
-                // public_id : req.file.filename
-            })
-            fs.unlink(req.file.path)
-        }
-
         //hash password
         const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -82,7 +69,6 @@ module.exports.register = async (req, res, next) => {
             email,
             password: hashedPassword,
             role,
-            profilePicture : haveFile ? uploadResult.secure_url : "",
             address,
             phoneNumber
         }

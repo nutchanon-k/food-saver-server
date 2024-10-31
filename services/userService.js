@@ -1,4 +1,5 @@
-const prisma = require("../models/prisma");
+const prisma = require("../configs/prisma");
+const cloudinary = require('../configs/cloudinary')
 
 module.exports.getUserByEmail = (email) => {
   const user = prisma.user.findFirst({
@@ -9,60 +10,79 @@ module.exports.getUserByEmail = (email) => {
   return user;
 };
 
-module.exports.getUserById = async() => {
-  const { id } = req.user;
-  const user = await prisma.user.findUnique({
+module.exports.getUserById = (id) => {
+  // console.log("id from service", id)
+  return prisma.user.findUnique({
     where: {
       id: +id,
     },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      profilePicture: true,
+      address: true,
+      phoneNumber: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true
+    }
   });
-  const { password, createdAt, updatedAt, ...userData } = user;
-  res.json(userData);
-  return userData
+ 
 };
 
-module.exports.updateUserProfile = async() => {
-  const {
-    firstName,
-    lastName,
-    email,
-    password,
-    role,
-    profilePicture,
-    address,
-    phoneNumber,
-    isActive,
-  } = req.input;
-  const { id } = req.user;
-  const checkUser = getUserById()
-
-  const haveFile = !!req.file
-  let uploadResult = {}
-  if (haveFile) {
-      uploadResult = await cloudinary.uploader.upload(req.file.path, {
-          public_id: path.parse(req.file.path).name
-      })
-      fs.unlink(req.file.path)
-      // console.log(checkUser)
-      if (checkUser.profilePicture) {
-          cloudinary.uploader.destroy(getPublicId(checkUser.profilePicture))
+module.exports.updateUserService = (userId,userData) => {
+  return prisma.user.update({
+      where: {
+          id: Number(userId)
+      },
+      data: userData,
+      select :{
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          profilePicture: true,
+          address: true,
+          phoneNumber: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true
       }
-  }
-  const user = prisma.user.update({
+  })
+}
+
+module.exports.deleteUserService = (userId) => {
+  return prisma.user.delete({
+      where: {
+          id: Number(userId)
+      }
+  })
+}
+
+
+
+module.exports.getUserByQueryService = (query) => {
+  console.log("query from service", query)
+  return prisma.user.findMany({
     where: {
-      id: +id,
+      ...query
     },
-    data: {
-      firstName,
-      lastName,
-      email,
-      password,
-      role,
-      profilePicture,
-      address,
-      phoneNumber,
-      isActive,
-    },
-  });
-  res.json(user);
-};
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      profilePicture: true,
+      address: true,
+      phoneNumber: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  })
+}

@@ -1,5 +1,4 @@
-const prisma = require('../models/prisma')
-
+const prisma = require("../configs/prisma");
 
 
 module.exports.createUserService = async (data) => {
