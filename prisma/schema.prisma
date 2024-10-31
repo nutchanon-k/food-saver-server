@@ -19,7 +19,7 @@ model User {
   lastName       String   @map("last_name")
   email          String   @unique
   password       String?  @map("password")
-  role           Role     @default(Buyer)
+  role           Role     @default(BUYER)
   profilePicture String?  @map("profile_picture")
   address        String?  @map("address")
   phoneNumber    String?  @map("phone_number")
@@ -40,13 +40,12 @@ model User {
   notifications  Notification[]
   messages       Message[]
 
-  @@unique([firstName, lastName])
 }
 
 enum Role {
-  Seller
-  Buyer
-  Admin
+  SELLER
+  BUYER
+  ADMIN
 }
 
 model OAuthProvider {
