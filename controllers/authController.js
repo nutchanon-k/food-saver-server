@@ -1,14 +1,10 @@
 require("dotenv").config();
 const jwt = require('jsonwebtoken')
 const createError = require('../utils/createError')
-const prisma = require('../configs/prisma')
 const nodemailer = require('nodemailer')
 const bcrypt = require('bcryptjs');
-const path = require('path')
-const fs = require('fs/promises') 
-const cloudinary = require('../configs/cloudinary')
-const getPublicId = require('../utils/getPublicId')
-const { getUserByEmail } = require("../services/userService");
+
+const { getUserByEmail, getUserById, updateUserService } = require("../services/userService");
 const { createUserService } = require("../services/authService");
 
 
@@ -81,4 +77,65 @@ module.exports.register = async (req, res, next) => {
         next(err)
     }
 
+}
+
+exports.forgotPassword = async (req, res, next) => {
+    try {
+        const { emailForgetPassword } = req.body
+
+        if (!emailForgetPassword) {
+            return createError(400, 'email is required') //ไม่ควรมี เพราะอาจเกิดการสุ่มได้
+        }
+        
+        const user = await getUserByEmail(emailForgetPassword)
+
+        if (!user) {
+            return res.status(200).json({ message: 'email sent' });
+        }
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '5m' });
+        const resetURL = `http://localhost:5173/reset-password/${token}`;
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL, // อีเมลขอคนที่จะส่ง
+                pass: process.env.PASSWORD // รหัสผ่านสำหรับ app (เอามาจาก gmail)
+            }
+        });
+
+        const mailOptions = {
+            to: user.email,
+            from: process.env.EMAIL,
+            subject: 'Reset Password',
+            text: `You have requested to reset your password. Click the link below to reset your password: ${resetURL}`
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ message: 'email sent' });
+
+    } catch (err) {
+        next(err)
+    }
+}
+
+exports.resetPassword = async (req, res, next) => {
+    try {
+        const { password, confirmPassword } = req.body
+        const { id } = req.user
+        if (password !== confirmPassword) {
+            return createError(400, 'password is not match')
+        }
+
+        const user = await getUserById(id)
+        if (!user) {    
+            return createError(400, 'email is not registered')
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10)
+        const result =  await updateUserService(id, {password : hashedPassword}) 
+
+        res.status(200).json({ message: 'reset password success' })
+
+    } catch (err) {
+        next(err)
+    }
 }

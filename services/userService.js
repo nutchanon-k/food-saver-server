@@ -1,5 +1,5 @@
 const prisma = require("../configs/prisma");
-const cloudinary = require('../configs/cloudinary')
+
 
 module.exports.getUserByEmail = (email) => {
   const user = prisma.user.findFirst({
@@ -62,8 +62,6 @@ module.exports.deleteUserService = (userId) => {
       }
   })
 }
-
-
 
 module.exports.getUserByQueryService = (query) => {
   console.log("query from service", query)

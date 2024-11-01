@@ -6,7 +6,7 @@ const path = require('path')
 const fs = require('fs/promises')
 const cloudinary = require('../configs/cloudinary')
 const getPublicId = require('../utils/getPublicId')
-const { getUserById, updateUserProfile, deleteUserService, getUserByQueryService, updateUserService } = require("../services/userService");
+const { getUserById, deleteUserService, getUserByQueryService, updateUserService } = require("../services/userService");
 
 
 
@@ -150,11 +150,3 @@ module.exports.getUserByQuery = async (req, res, next) => {
 }
 
 
-
-
-
-
-// GET /api/users/me
-// PUT /api/users/me
-// GET /api/users/:id (Admin Only)
-// DELETE /api/users/:id (Admin Only)

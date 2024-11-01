@@ -63,8 +63,8 @@ model OAuthProvider {
 }
 
 enum OAuthProviderType {
-  google
-  facebook
+  GOOGLE
+  FACEBOOK
   // Add other OAuth providers here
 }
 
@@ -75,7 +75,7 @@ model Store {
   storeAddress   String      @map("store_address")
   storeDetails   String?     @map("store_details")
   profilePicture String?     @map("profile_picture")
-  status         StoreStatus @default(open)
+  status         StoreStatus @default(OPEN)
   phoneNumber    String?     @map("phone_number")
   timeOpen       DateTime    @map("time_open")
   timeClose      DateTime    @map("time_close")
@@ -92,8 +92,8 @@ model Store {
 }
 
 enum StoreStatus {
-  open
-  closed
+  OPEN
+  CLOSED
 }
 
 model Product {
@@ -187,7 +187,7 @@ model Donation {
 
 model Foundation {
   id             Int      @id @default(autoincrement())
-  name           String
+  name           String   @unique
   contactInfo    String?  @map("contact_info")
   address        String?  @map("address")
   profilePicture String?  @map("profile_picture")
