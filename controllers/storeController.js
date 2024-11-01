@@ -1,9 +1,22 @@
 const { message } = require('../configs/prisma')
-const {getStoreByUserId, createStoreService, getStoreById, updateStoreService} = require('../services/storeService')
+const {getStoreByUserId, getStoreService, createStoreService, getStoreById,getStoreArrayService, updateStoreService,} = require('../services/storeService')
 const createError = require('../utils/createError')
+const path = require('path')
+const fs = require('fs/promises')
+const cloudinary = require('../configs/cloudinary')
 
 module.exports.createStore = async(req,res,next) => {
   try {
+    const {
+      storeName,
+      storeAddress,
+      storeDetails,
+      phoneNumber,
+      timeOpen,
+      timeClose,
+      latitude,
+      longitude,
+    } = req.body
     const userId = req.user.id
     // Find if user already created store
     const isStoreExist = await getStoreByUserId(userId)
@@ -50,6 +63,7 @@ module.exports.createStore = async(req,res,next) => {
 module.exports.updateStore = async(req,res,next) => {
   try {
     const {id} = req.params
+    const userId = req.user.id
     const {
       storeName,
       storeAddress,
@@ -66,6 +80,9 @@ module.exports.updateStore = async(req,res,next) => {
     const store = await getStoreById(id)
     if (!store) {
       return createError(404,"Store not found")
+    }
+    if (userId != store.userId){
+      return createError(403,"Unauthorized")
     }
     const fieldsToUpdate = {
       storeName,
@@ -89,8 +106,8 @@ module.exports.updateStore = async(req,res,next) => {
             public_id: path.parse(req.file.path).name
         })
         fs.unlink(req.file.path)
-        if (user.profilePicture) {
-            cloudinary.uploader.destroy(getPublicId(user.profilePicture))
+        if (store.profilePicture) {
+            cloudinary.uploader.destroy(getPublicId(store.profilePicture))
         }
         cleanFieldsToUpdate.profilePicture = uploadResult.secure_url || ''
     }
@@ -117,8 +134,40 @@ module.exports.deleteStore = async(req,res,next) => {
       return createError(403,"Unauthorized")
     }
     // 
-    
+
   } catch (err) {
     console.log(err)
+    next(err)
+  }
+}
+
+module.exports.getStoreArray = async(req,res,next) => {
+  try {
+    const storeArray = await getStoreArrayService(req.query)
+    res.status(200).json({
+      'message' : "Get all store",
+      'data' : storeArray
+    })
+  } catch (err) {
+    console.log(err)
+    next(err)
+  }
+
+}
+
+module.exports.getStoreById = async(req,res,next) => {
+  try {
+    const {id} = req.params
+    const store = await getStoreService(id)
+    if (!store){
+      return createError(404,"Store not found")
+    }
+    res.status(200).json({
+      'message' : "Get store",
+      'data' : store
+    })
+  } catch (err) {
+    console.log(err)
+    next(err)
   }
 }

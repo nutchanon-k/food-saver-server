@@ -302,6 +302,156 @@ const createStoreSchema = Joi.object({
     return obj;
 });
 
+const createProductSchema = Joi.object({
+    // name,
+    name : Joi.string()
+        .min(2)
+        .max(50)
+        .required()
+        .messages({
+            'string.base': `"name" should be a type of 'text'`,
+            'string.empty': `"name" cannot be an empty field`,
+            'string.min': `"name" should have a minimum length of {#limit}`,
+            'string.max': `"name" should have a maximum length of {#limit}`,
+        }),
+    // description,
+    description : Joi.string()
+        .min(2)
+        .max(100)
+        .optional()
+        .messages({
+            'string.base': `"description" should be a type of 'text'`,
+            'string.min': `"description" should have a minimum length of {#limit}`,
+            'string.max': `"description" should have a maximum length of {#limit}`,
+        }),
+    // originalPrice,
+    originalPrice: Joi.number()
+        .precision(2)
+        .positive()
+        .required()
+        .messages({
+            'number.base': `"originalPrice" should be a type of 'number'`,
+            'number.positive': `"originalPrice" should be a positive number`,
+            'number.precision': `"originalPrice" should have at most {#limit} decimal places`,
+        }),
+
+    // salePrice,
+    salePrice: Joi.number()
+        .precision(2)
+        .positive()
+        .required()
+        .messages({
+            'number.base': `"salePrice" should be a type of 'number'`,
+            'number.positive': `"salePrice" should be a positive number`,
+            'number.precision': `"salePrice" should have at most {#limit} decimal places`,
+        }),
+
+    // expirationDate,
+    expirationDate: Joi.date()
+        .optional()
+        .messages({
+            'date.base': `"expirationDate" should be a valid date`,
+        }),
+
+    // quantity,
+    quantity: Joi.number()
+        .integer()
+        .min(0)
+        .required()
+        .messages({
+            'number.base': `"quantity" should be a type of 'number'`,
+            'number.integer': `"quantity" should be an integer`,
+            'number.min': `"quantity" should be at least {#limit}`,
+        }),
+    imageUrl: Joi.string()
+        .uri()
+        .optional()
+        .messages({
+            'string.uri': `"imageUrl" must be a valid URI`,
+        }),
+}).custom((obj, helpers) => {
+    // Custom validation to ensure salePrice < originalPrice if both are provided
+    if (obj.originalPrice && obj.salePrice && obj.salePrice >= obj.originalPrice) {
+        return helpers.message(`"salePrice" should be less than "originalPrice"`);
+    }
+    return obj;
+}).min(1).messages({
+    'object.min': 'At least one field must be updated',
+});
+
+const updateProductSchema = Joi.object({
+    name: Joi.string()
+        .min(2)
+        .max(50)
+        .optional()
+        .messages({
+            'string.base': `"name" should be a type of 'text'`,
+            'string.empty': `"name" cannot be an empty field`,
+            'string.min': `"name" should have a minimum length of {#limit}`,
+            'string.max': `"name" should have a maximum length of {#limit}`,
+        }),
+
+    description: Joi.string()
+        .min(2)
+        .max(100)
+        .optional()
+        .messages({
+            'string.base': `"description" should be a type of 'text'`,
+            'string.min': `"description" should have a minimum length of {#limit}`,
+            'string.max': `"description" should have a maximum length of {#limit}`,
+        }),
+
+    originalPrice: Joi.number()
+        .precision(2)
+        .positive()
+        .optional()
+        .messages({
+            'number.base': `"originalPrice" should be a type of 'number'`,
+            'number.positive': `"originalPrice" should be a positive number`,
+            'number.precision': `"originalPrice" should have at most {#limit} decimal places`,
+        }),
+
+    salePrice: Joi.number()
+        .precision(2)
+        .positive()
+        .optional()
+        .messages({
+            'number.base': `"salePrice" should be a type of 'number'`,
+            'number.positive': `"salePrice" should be a positive number`,
+            'number.precision': `"salePrice" should have at most {#limit} decimal places`,
+        }),
+
+    expirationDate: Joi.date()
+        .optional()
+        .messages({
+            'date.base': `"expirationDate" should be a valid date`,
+        }),
+
+    quantity: Joi.number()
+        .integer()
+        .min(0)
+        .optional()
+        .messages({
+            'number.base': `"quantity" should be a type of 'number'`,
+            'number.integer': `"quantity" should be an integer`,
+            'number.min': `"quantity" should be at least {#limit}`,
+        }),
+
+    imageUrl: Joi.string()
+        .uri()
+        .optional()
+        .messages({
+            'string.uri': `"imageUrl" must be a valid URI`,
+        }),
+}).custom((obj, helpers) => {
+    // Custom validation to ensure salePrice < originalPrice if both are provided
+    if (obj.originalPrice && obj.salePrice && obj.salePrice >= obj.originalPrice) {
+        return helpers.message(`"salePrice" should be less than "originalPrice"`);
+    }
+    return obj;
+})
+
+
 const updateStoreSchema = Joi.object({
     storeName: Joi.string()
         .min(2)
@@ -395,15 +545,7 @@ const updateStoreSchema = Joi.object({
         }
     }
     return obj;
-}).min(1).messages({
-    'object.min': 'At least one field must be updated',
-});
-
-
-
-
-
-
+})
 
 //foundation
 // Schema for creating a new Foundation
@@ -502,5 +644,7 @@ module.exports.createStoreValidator = validateSchema(createStoreSchema)
 module.exports.updateStoreValidator = validateSchema(updateStoreSchema)
 module.exports.createFoundationValidator = validateSchema(createFoundationSchema)
 module.exports.updateFoundationValidator = validateSchema(updateFoundationSchema)
+module.exports.createProductValidator = validateSchema(createProductSchema)
+module.exports.updateProductValidator = validateSchema(updateProductSchema)
 
 
