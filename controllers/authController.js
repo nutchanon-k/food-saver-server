@@ -18,8 +18,6 @@ module.exports.login = async (req, res, next) => {
         if (!user) {
             return createError(400, 'email is not registered')
         }
-        
-
         //compare password
         const passwordIsMatch = await bcrypt.compare(password, user.password)
         if (!passwordIsMatch) {

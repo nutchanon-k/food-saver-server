@@ -39,8 +39,6 @@ model User {
   orders         Order[]
   notifications  Notification[]
   messages       Message[]
-
-
 }
 
 enum Role {
@@ -312,6 +310,3 @@ model Notification {
   // Relations
   user User @relation(fields: [userId], references: [id])
 }
-
-
-
