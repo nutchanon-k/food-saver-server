@@ -39,8 +39,6 @@ model User {
   orders         Order[]
   notifications  Notification[]
   messages       Message[]
-
-
 }
 
 enum Role {
@@ -77,8 +75,8 @@ model Store {
   profilePicture String?     @map("profile_picture")
   status         StoreStatus @default(OPEN)
   phoneNumber    String?     @map("phone_number")
-  timeOpen       DateTime    @map("time_open")
-  timeClose      DateTime    @map("time_close")
+  timeOpen       String      @map("time_open")
+  timeClose      String      @map("time_close")
   latitude       Float       @map("latitude")
   longitude      Float       @map("longitude")
   createdAt      DateTime    @default(now()) @map("created_at")
@@ -115,8 +113,8 @@ model Product {
   cartItems         CartItem[]
   orderItems        OrderItem[]
   productCategories ProductCategories[]
-  productAllergens  Product_Allergen[]
-  productDonations  Product_Donation[]
+  productAllergens  ProductAllergen[]
+  productDonations  ProductDonation[]
 }
 
 model Category {
@@ -134,7 +132,7 @@ model Allergen {
   description String? @map("description")
 
   // Relations
-  productAllergens Product_Allergen[]
+  productAllergens ProductAllergen[]
 }
 
 model ProductCategories {
@@ -148,7 +146,7 @@ model ProductCategories {
   @@id([productId, categoryId])
 }
 
-model Product_Allergen {
+model ProductAllergen {
   productId  Int @map("product_id")
   allergenId Int @map("allergen_id")
 
@@ -159,7 +157,7 @@ model Product_Allergen {
   @@id([productId, allergenId])
 }
 
-model Product_Donation {
+model ProductDonation {
   productId  Int @map("product_id")
   donationId Int @map("donation_id")
   quantity   Int
@@ -182,7 +180,7 @@ model Donation {
   // Relations
   seller           User               @relation("SellerDonations", fields: [sellerId], references: [id])
   foundation       Foundation         @relation(fields: [foundationId], references: [id])
-  productDonations Product_Donation[]
+  productDonations ProductDonation[]
 }
 
 model Foundation {
@@ -310,6 +308,3 @@ model Notification {
   // Relations
   user User @relation(fields: [userId], references: [id])
 }
-
-
-
