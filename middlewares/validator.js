@@ -912,35 +912,16 @@ const createCartItemSchema = Joi.object({
 
 // Schema for updating an existing CartItem
 const updateCartItemSchema = Joi.object({
-  id: Joi.number().integer().positive().required()
-      .messages({
-          'number.base': '"id" must be a number',
-          'number.integer': '"id" must be an integer',
-          'number.positive': '"id" must be a positive number',
-          'any.required': '"id" is a required field'
-      }),
-  userId: Joi.number().integer().positive()
-      .messages({
-          'number.base': '"userId" must be a number',
-          'number.integer': '"userId" must be an integer',
-          'number.positive': '"userId" must be a positive number',
-      }),
-  productId: Joi.number().integer().positive()
-      .messages({
-          'number.base': '"productId" must be a number',
-          'number.integer': '"productId" must be an integer',
-          'number.positive': '"productId" must be a positive number',
-      }),
+
   quantity: Joi.number().integer().min(1)
       .messages({
           'number.base': '"quantity" must be a number',
           'number.integer': '"quantity" must be an integer',
           'number.min': '"quantity" must be at least 1',
       }),
-}).or('userId', 'productId', 'quantity') // At least one field must be present
-.messages({
-    'object.missing': 'At least one of "userId", "productId", or "quantity" must be provided'
 });
+
+
 
 const validateSchema = (schema) => (req, res, next) => {
   const { value, error } = schema.validate(req.body)

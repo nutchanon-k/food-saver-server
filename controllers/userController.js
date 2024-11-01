@@ -116,7 +116,7 @@ module.exports.getUser = async (req, res, next) => {
         const where = {};
 
         if (id !== undefined) {
-            where.id = id;
+            where.id = +id;
         }
 
         if (firstName) {
@@ -164,8 +164,8 @@ module.exports.getUser = async (req, res, next) => {
         let skip;
 
         if (page && limit) {
-            take = limit;
-            skip = (page - 1) * take;
+            take = +limit;
+            skip = (+page - 1) * take;
         }
         // ถ้าไม่มีการกำหนด page และ limit จะไม่กำหนด take และ skip ซึ่งจะส่งข้อมูลทั้งหมด
 
