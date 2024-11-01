@@ -400,6 +400,90 @@ const updateStoreSchema = Joi.object({
 });
 
 
+
+
+
+
+
+//foundation
+// Schema for creating a new Foundation
+const createFoundationSchema = Joi.object({
+    name: Joi.string()
+      .min(2)
+      .max(200)
+      .required()
+      .messages({
+        'string.base': `"name" should be a type of 'text'`,
+        'string.empty': `"name" cannot be an empty field`,
+        'string.min': `"name" should have a minimum length of 2 characters`,
+        'string.max': `"name" should have a maximum length of 200 characters`,
+        'any.required': `"name" is a required field`,
+      }),
+  
+    contactInfo: Joi.string()
+      .max(255)
+      .optional()
+      .messages({
+        'string.base': `"contactInfo" should be a type of 'text'`,
+        'string.max': `"contactInfo" should have a maximum length of 255 characters`,
+      }),
+  
+    address: Joi.string()
+      .max(255)
+      .optional()
+      .messages({
+        'string.base': `"address" should be a type of 'text'`,
+        'string.max': `"address" should have a maximum length of 255 characters`,
+      }),
+  
+    profilePicture: Joi.string()
+      .uri()
+      .optional()
+      .messages({
+        'string.uri': `"profilePicture" must be a valid URI`,
+      }),
+  });
+// Schema for updating an existing Foundation
+const updateFoundationSchema = Joi.object({
+    name: Joi.string()
+      .min(2)
+      .max(200)
+      .optional()
+      .messages({
+        'string.base': `"name" should be a type of 'text'`,
+        'string.empty': `"name" cannot be an empty field`,
+        'string.min': `"name" should have a minimum length of 2 characters`,
+        'string.max': `"name" should have a maximum length of 200 characters`,
+      }),
+  
+    contactInfo: Joi.string()
+      .max(255)
+      .optional()
+      .messages({
+        'string.base': `"contactInfo" should be a type of 'text'`,
+        'string.max': `"contactInfo" should have a maximum length of 255 characters`,
+      }),
+  
+    address: Joi.string()
+      .max(255)
+      .optional()
+      .messages({
+        'string.base': `"address" should be a type of 'text'`,
+        'string.max': `"address" should have a maximum length of 255 characters`,
+      }),
+  
+    profilePicture: Joi.string()
+      .uri()
+      .optional()
+      .messages({
+        'string.uri': `"profilePicture" must be a valid URI`,
+      }),
+  })
+  .min(1)
+  .messages({
+    'object.min': 'At least one field must be updated',
+  });
+
 const validateSchema = (schema) => (req, res, next) => {
     const { value, error } = schema.validate(req.body)
 
@@ -416,5 +500,7 @@ module.exports.updateUserValidator = validateSchema(updateUserSchema)
 module.exports.loginValidator = validateSchema(loginSchema)
 module.exports.createStoreValidator = validateSchema(createStoreSchema)
 module.exports.updateStoreValidator = validateSchema(updateStoreSchema)
+module.exports.createFoundationValidator = validateSchema(createFoundationSchema)
+module.exports.updateFoundationValidator = validateSchema(updateFoundationSchema)
 
 

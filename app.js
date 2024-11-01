@@ -34,6 +34,7 @@ const allergenRoute = require("./routes/allergenRoute");
 const cartItemRoute = require("./routes/cartItemRoute");
 const notificationRoute = require("./routes/notificationRoute");
 const searchRoute = require("./routes/searchRoute");
+const { authenticate } = require("./middlewares/authenticate");
 
 
 // ตั้งค่า Rate Limiting
@@ -59,7 +60,7 @@ app.use('/users', userRoute);
 app.use('/stores', storeRoute);
 app.use('/products', productRoute);
 app.use('/donations', donationRoute);
-app.use('/foundations', foundationRoute);
+app.use('/foundations',foundationRoute);
 app.use('/reviews', reviewRoute);
 app.use('/chats', chatRoute);
 app.use('/favorite-stores', favoriteRoute);
