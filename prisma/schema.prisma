@@ -187,7 +187,7 @@ model Donation {
 
 model Foundation {
   id             Int      @id @default(autoincrement())
-  name           String
+  name           String   @unique
   contactInfo    String?  @map("contact_info")
   address        String?  @map("address")
   profilePicture String?  @map("profile_picture")
