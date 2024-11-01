@@ -6,7 +6,8 @@ const path = require('path')
 const fs = require('fs/promises')
 const cloudinary = require('../configs/cloudinary')
 const getPublicId = require('../utils/getPublicId')
-const { createFoundationService, getFoundationByName, getAllFoundationsService,getFoundationByIdService, updateFoundationService, deleteFoundationService } = require("../services/foundationService");
+const { createFoundationService, getFoundationByName, getAllFoundationsService,getFoundationByIdService, updateFoundationService, deleteFoundationService, getFoundationService } = require("../services/foundationService");
+const { donation } = require("../configs/prisma");
 
 
 // model Foundation {
@@ -51,33 +52,34 @@ module.exports.createFoundation = async (req, res, next) => {
     }
   };
   
-module.exports.getAllFoundations = async (req, res, next) => {
-    try {
-      const foundations = await getAllFoundationsService();
-      res.status(200).json(foundations);
-    } catch (err) {
-      next(err);
-    }
-  };
+// module.exports.getAllFoundations = async (req, res, next) => {
+//     try {
+//       const foundations = await getAllFoundationsService();
+//       res.status(200).json(foundations);
+//     } catch (err) {
+//       next(err);
+//     }
+//   };
   
-module.exports.getFoundationById = async (req, res, next) => {
-    try {
-      const id = parseInt(req.params.id);
 
-      if(isNaN(id) || id <= 0) {
-        createError(400, 'Invalid ID')
-      }
+// module.exports.getFoundationById = async (req, res, next) => {
+//     try {
+//       const id = parseInt(req.params.id);
 
-      const foundation = await getFoundationByIdService(id);
-      if (!foundation) {
-        return createError(404, 'Foundation not found');
-      }
+//       if(isNaN(id) || id <= 0) {
+//         createError(400, 'Invalid ID')
+//       }
 
-      res.status(200).json(foundation);
-    } catch (err) {
-      next(err);
-    }
-  };
+//       const foundation = await getFoundationByIdService(id);
+//       if (!foundation) {
+//         return createError(404, 'Foundation not found');
+//       }
+
+//       res.status(200).json(foundation);
+//     } catch (err) {
+//       next(err);
+//     }
+//   };
   
 module.exports.updateFoundation = async (req, res, next) => {
     try {
@@ -137,6 +139,73 @@ module.exports.deleteFoundation = async (req, res, next) => {
 
       const deletedFoundation = await deleteFoundationService(id);
       res.status(200).json({ message: `Foundation "${deletedFoundation.name}" deleted successfully` });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+module.exports.getFoundation = async (req, res, next) => {
+  console.log("test")
+    try {
+      const {id, name, contactInfo, address, sortBy, sortOrder, page, limit } = req.query;
+      const where = {};
+
+    if (id) {
+        where.id = Number(id);
+    }
+
+    if (name) {
+        where.name = {
+            contains: name,
+        };
+    }
+
+    if (contactInfo) {
+        where.contactInfo = {
+            contains: contactInfo,
+        };
+    }
+
+    if (address) {
+        where.address = {
+            contains: address,
+        };
+    }
+
+     // กำหนดการเรียงลำดับ
+     const orderBy = {};
+     if (sortBy) {
+         orderBy[sortBy] = sortOrder === 'asc' ? 'asc' : 'desc';
+     }
+
+     // กำหนดการแบ่งหน้าแบบเงื่อนไข
+     let take;
+     let skip;
+
+     if (page && limit) {
+         take = +limit;
+         skip = (page - 1) * +take;
+     }
+     // ถ้าไม่มีการกำหนด page และ limit จะไม่กำหนด take และ skip ซึ่งจะส่งข้อมูลทั้งหมด
+
+
+     const data = {
+         where,
+         orderBy: sortBy ? orderBy : undefined,
+         skip,
+         take,
+         include: {
+           donations: true,
+         }
+     }
+      // console.log("data",data)
+
+      const foundation = await getFoundationService(data);
+      if(foundation.length === 0) {
+        return createError(404, 'Foundation not found');
+      }
+
+      res.status(200).json(foundation);
     } catch (err) {
       next(err);
     }

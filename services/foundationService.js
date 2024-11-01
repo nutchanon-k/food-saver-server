@@ -49,3 +49,9 @@ module.exports.deleteFoundationService = async (id) => {
     })
     return foundation
 }
+
+
+module.exports.getFoundationService = async (data) => {
+    const foundation = await prisma.foundation.findMany(data)
+    return foundation
+}

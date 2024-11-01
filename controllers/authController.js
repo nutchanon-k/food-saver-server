@@ -51,7 +51,7 @@ module.exports.register = async (req, res, next) => {
         //check user exist
         const isUserExist = await getUserByEmail(email)        
         if(isUserExist){
-            return createError(400, "User already exist")
+            return createError(409, "User already exist")
         }
 
         //hash password
