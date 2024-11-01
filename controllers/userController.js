@@ -110,31 +110,104 @@ module.exports.deleteUser = async (req, res, next) => {
         next(err)
     }
 }
-module.exports.getUserByQuery = async (req, res, next) => {
+module.exports.getUser = async (req, res, next) => {
     try {
-        const {
-            id,
-            firstName,
-            lastName,
-            email,
-            role,
-            phoneNumber,
-            isActive } = req.query
+        const { id, firstName, lastName, email, role, phoneNumber, isActive, sortBy, sortOrder, page, limit } = req.query
+        const where = {};
 
-        const fieldsToQuery = {
-            id : id? Number(id) : undefined,
-            firstName,
-            lastName,
-            email,
-            role,
-            phoneNumber,
-            isActive 
+        if (id !== undefined) {
+            where.id = id;
         }
-        const cleanFieldsToQuery = Object.fromEntries(
-            Object.entries(fieldsToQuery).filter(([key, value]) => value !== undefined)
-        );
-        console.log("test",cleanFieldsToQuery)
-        const user = await getUserByQueryService(cleanFieldsToQuery)
+
+        if (firstName) {
+            where.firstName = {
+                contains: firstName,      
+            };
+        }
+
+        if (lastName) {
+            where.lastName = {
+                contains: lastName,
+            };
+        }
+
+        if (email) {
+            where.email = {
+                contains: email,
+            };
+        }
+
+        if (role) {
+            where.role = {
+                equals: role,
+            };
+        }
+
+        if (phoneNumber) {
+            where.phoneNumber = {
+                contains: phoneNumber,
+            };
+        }
+
+        if (isActive !== undefined) {
+            where.isActive = isActive;
+        }
+
+        // กำหนดการเรียงลำดับ
+        const orderBy = {};
+        if (sortBy) {
+            orderBy[sortBy] = sortOrder === 'asc' ? 'asc' : 'desc';
+        }
+
+        // กำหนดการแบ่งหน้าแบบเงื่อนไข
+        let take;
+        let skip;
+
+        if (page && limit) {
+            take = limit;
+            skip = (page - 1) * take;
+        }
+        // ถ้าไม่มีการกำหนด page และ limit จะไม่กำหนด take และ skip ซึ่งจะส่งข้อมูลทั้งหมด
+
+
+        const data = {
+            where,
+            orderBy: sortBy ? orderBy : undefined,
+            skip,
+            take,
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                role: true,
+                profilePicture: true,
+                address: true,
+                phoneNumber: true,
+                isActive: true,
+                createdAt: true,
+                updatedAt: true
+              }
+        }
+
+        // สามารถ include ได้
+        // {
+        //     include: {
+        //         store: true,
+        //         oauthProviders: true,
+        //         donations: true,
+        //         reviews: true,
+        //         chatsAsBuyer: true,
+        //         chatsAsSeller: true,
+        //         favoriteStores: true,
+        //         cartItems: true,
+        //         orders: true,
+        //         notifications: true,
+        //         messages: true,
+        //     },
+        // };
+
+        const user = await getUserByQueryService(data)
 
         if (!user || user.length === 0) {
             return createError(400, "User not found")
@@ -144,6 +217,9 @@ module.exports.getUserByQuery = async (req, res, next) => {
             message: 'Get user data success',
             data: user
         })
+
+
+
     } catch (err) {
         next(err)
     }
