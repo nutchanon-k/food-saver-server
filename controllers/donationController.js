@@ -8,6 +8,7 @@ const { getFoundationByIdService } = require("../services/foundationService");
 const { product, message } = require("../configs/prisma");
 const { createNewProductDonationService, createNewDonationService, getDonationsService, deleteDonationService, updateVerifyDonationService } = require("../services/donationService");
 const { getUserById } = require("../services/userService");
+const { searchDonationSchema } = require("../middlewares/validator");
 
 
 // model Donation {
@@ -93,6 +94,10 @@ module.exports.createDonation = async (req, res, next) => {
 
 module.exports.getDonations = async (req, res, next) => {
     try {
+        const { error, value } = searchDonationSchema.validate(req.query, { abortEarly: false });
+        if (error) {
+            return next(createError(400, error.details.map(detail => detail.message).join(', ')));
+        }
         // const {id, sellerId, foundationId, isVerify} = req.query
         const { id, sellerId, foundationId, isVerify, minTotalPrice, maxTotalPrice, startDate, endDate, sortBy, sortOrder, page, limit } = req.query;
         // กำหนดเงื่อนไขการค้นหา

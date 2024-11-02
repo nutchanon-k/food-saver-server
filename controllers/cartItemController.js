@@ -3,6 +3,7 @@ const createError = require('../utils/createError')
 const { getUserById } = require("../services/userService");
 const { createCartItemService, updateQuantityService, getCartItemForCheckService, getCartItemsService, deleteCartItemService } = require("../services/cartItemService");
 const { getProductService } = require("../services/productService");
+const { searchCartItemSchema } = require("../middlewares/validator");
 
 
 
@@ -65,7 +66,11 @@ module.exports.addToCart = async (req, res, next) => {
 
 module.exports.getCartItems = async (req, res, next) => {
     try {
-        const { id, userId, productId, quantity, sortBy, sortOrder, page, limit } = req.query;
+        const { error, value } = searchCartItemSchema.validate(req.query, { abortEarly: false });
+        if (error) {
+            return next(createError(400, error.details.map(detail => detail.message).join(', ')));
+        }
+        const { id, userId, productId, minQuantity, maxQuantity, sortBy, sortOrder, page, limit } = req.query;
         const where = {};
 
         if (id !== undefined) {
@@ -80,15 +85,14 @@ module.exports.getCartItems = async (req, res, next) => {
             where.productId = Number(productId);
         }
 
-        if (quantity !== undefined) {
-            // Handle advanced quantity filtering
-            const quantityFilter = {};
-            if (quantity.gt !== undefined) quantityFilter.gt = +quantity.gt;
-            if (quantity.gte !== undefined) quantityFilter.gte = +quantity.gte;
-            if (quantity.lt !== undefined) quantityFilter.lt = +quantity.lt;
-            if (quantity.lte !== undefined) quantityFilter.lte = +quantity.lte;
-    
-            where.quantity = quantityFilter;
+        if (minQuantity || maxQuantity) {
+            where.quantity = {};
+            if (minQuantity) {
+                where.quantity.gte = parseFloat(minQuantity);
+            }
+            if (maxTotalPrice) {
+                where.quantity.lte = parseFloat(maxQuantity);
+            }
         }
         //GET http://localhost:8000/cart-items?userId=1&quantity[gte]=2&quantity[lte]=5&page=1&limit=5
 

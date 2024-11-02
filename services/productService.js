@@ -1,10 +1,10 @@
 const prisma = require("../configs/prisma")
 
-module.exports.createProductService = (data) => {
+module.exports.createProductService =  async (data) => {
   const dateString = data.expirationDate
   const expDateTime = new Date(dateString)
   data.expirationDate = expDateTime
-  return prisma.product.create({
+  return  await prisma.product.create({
     data : data,
     select : {
       storeId : true,
@@ -72,8 +72,8 @@ module.exports.addAllergen = async(data) => {
   })
 }
 
-module.exports.updateProductService = (productId,productData) => {
-  return prisma.product.update({
+module.exports.updateProductService = async (productId,productData) => {
+  return  await prisma.product.update({
     where : {
       id : +productId
     },
