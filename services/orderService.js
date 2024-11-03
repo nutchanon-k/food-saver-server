@@ -70,3 +70,32 @@ module.exports.deleteOrderService = async (id) => {
   });
   return order;
 }
+
+module.exports.getOrderByUserIdService = async (userId) => {
+  const orders = await prisma.order.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      orderItems: true,
+    },
+  });
+  return orders;
+}
+
+module.exports.getOrderItemsBySellerIdService = async (sellerId) => {
+  const orders = await prisma.orderItem.findMany({
+    where: {
+      product : {
+          store : {
+              userId : +sellerId
+        }
+      }
+    },
+    include: {
+      order: true,
+      product: true,
+    },
+  });
+  return orders;
+}

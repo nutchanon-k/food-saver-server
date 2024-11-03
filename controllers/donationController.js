@@ -265,8 +265,8 @@ module.exports.updateVerifyDonation = async (req, res, next) => {
         
 
         const updatedDonation = await updateVerifyDonationService(Number(id), upDateVerify)
-        console.log("testxxxxxxxxxxxx",updatedDonation.isVerify)
-        console.log("isDonationExist",isDonationExist[0].isVerify)
+        // console.log("testxxxxxxxxxxxx",updatedDonation.isVerify)
+        // console.log("isDonationExist",isDonationExist[0].isVerify)
         const isVerifyComplete = updatedDonation.isVerify === true && isDonationExist[0].isVerify === false
 
         if (isVerifyComplete) {

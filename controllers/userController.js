@@ -24,20 +24,17 @@ module.exports.currentUser = async (req, res, next) => {
 module.exports.updateUser = async (req, res, next) => {
     try {
         const id = req.user.id
-        const {
-            firstName,
-            lastName,
-            email,
-            password,
-            role,
-            address,
-            phoneNumber,
-            isActive,
-        } = req.body;
+        const userRole = req.user.role
+        const {firstName,lastName,email,password,role, address,phoneNumber,isActive,} = req.body;
 
         const user = await getUserById(Number(id))
         if (!user) {
             return createError(400, "User not found")
+        }
+        if (role !== "ADMIN"){
+            if (id !== user.id) {
+                return createError(403, "Forbidden")
+            }
         }
 
         const fieldsToUpdate = {

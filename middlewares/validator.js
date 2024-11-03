@@ -531,6 +531,180 @@ const updateProductSchema = Joi.object({
 })
 
 
+
+
+// Schema for creating a new Product
+const createProductSchemaAll = Joi.object({
+  name: Joi.string().min(1).max(255).required()
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" must be at least 1 characters long',
+      'string.max': '"name" must be at most 255 characters long',
+      'any.required': '"name" is a required field',
+    }),
+  description: Joi.string().min(5).max(1000).optional()
+    .messages({
+      'string.base': '"description" must be a string',
+      'string.min': '"description" must be at least 5 characters long',
+      'string.max': '"description" must be at most 100 characters long',
+    }),
+  originalPrice: Joi.number().precision(2).min(0).required()
+    .messages({
+      'number.base': '"originalPrice" must be a number',
+      'number.precision': '"originalPrice" must have at most 2 decimal places',
+      'number.min': '"originalPrice" must be at least 0',
+      'any.required': '"originalPrice" is a required field',
+    }),
+  salePrice: Joi.number().precision(2).min(0).required()
+    .messages({
+      'number.base': '"salePrice" must be a number',
+      'number.precision': '"salePrice" must have at most 2 decimal places',
+      'number.min': '"salePrice" must be at least 0',
+      'any.required': '"salePrice" is a required field',
+    }),
+  expirationDate: Joi.date().greater('now').optional()
+    .messages({
+      'date.base': '"expirationDate" must be a valid date',
+      'date.greater': '"expirationDate" must be a date in the future',
+    }),
+  imageUrl: Joi.string().uri().optional()
+    .messages({
+      'string.base': '"imageUrl" must be a string',
+      'string.empty': '"imageUrl" cannot be empty',
+      'string.uri': '"imageUrl" must be a valid URI',
+      'any.required': '"imageUrl" is a required field',
+    }),
+  quantity: Joi.number().integer().min(0).default(0)
+    .messages({
+      'number.base': '"quantity" must be a number',
+      'number.integer': '"quantity" must be an integer',
+      'number.min': '"quantity" must be at least {#limit}',
+    }),
+  categoryId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"categoryId" must contain numbers',
+        'number.integer': '"categoryId" must contain integers',
+        'number.positive': '"categoryId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"categoryIds" must be an array of numbers',
+    }),
+  allergenId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"allergenId" must contain numbers',
+        'number.integer': '"allergenId" must contain integers',
+        'number.positive': '"allergenId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"allergenIds" must be an array of numbers',
+    }),
+})
+  .custom((value, helpers) => {
+    // Ensure salePrice is not greater than originalPrice
+    if (value.salePrice > value.originalPrice) {
+      return helpers.error('any.custom', { message: '"salePrice" cannot be greater than "originalPrice"' });
+    }
+    return value;
+  })
+
+// Schema for updating an existing Product
+const updateProductSchemaAll = Joi.object({
+  name: Joi.string().min(1).max(255).optional()
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" must be at least {#limit} characters long',
+      'string.max': '"name" must be at most {#limit} characters long',
+    }),
+  description: Joi.string().min(5).max(1000).optional()
+    .messages({
+      'string.base': '"description" must be a string',
+      'string.min': '"description" must be at least {#limit} characters long',
+      'string.max': '"description" must be at most {#limit} characters long',
+    }),
+  originalPrice: Joi.number().precision(2).min(0).optional()
+    .messages({
+      'number.base': '"originalPrice" must be a number',
+      'number.precision': '"originalPrice" must have at most {#limit} decimal places',
+      'number.min': '"originalPrice" must be at least {#limit}',
+    }),
+  salePrice: Joi.number().precision(2).min(0).optional()
+    .messages({
+      'number.base': '"salePrice" must be a number',
+      'number.precision': '"salePrice" must have at most {#limit} decimal places',
+      'number.min': '"salePrice" must be at least {#limit}',
+    }),
+  expirationDate: Joi.date().greater('now').optional()
+    .messages({
+      'date.base': '"expirationDate" must be a valid date',
+      'date.greater': '"expirationDate" must be a date in the future',
+    }),
+  imageUrl: Joi.string().uri().optional()
+    .messages({
+      'string.base': '"imageUrl" must be a string',
+      'string.empty': '"imageUrl" cannot be empty',
+      'string.uri': '"imageUrl" must be a valid URI',
+    }),
+  quantity: Joi.number().integer().min(0).optional()
+    .messages({
+      'number.base': '"quantity" must be a number',
+      'number.integer': '"quantity" must be an integer',
+      'number.min': '"quantity" must be at least {#limit}',
+    }),
+  categoryId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"categoryId" must contain numbers',
+        'number.integer': '"categoryId" must contain integers',
+        'number.positive': '"categoryId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"categoryIds" must be an array of numbers',
+    }),
+  allergenId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"allergenId" must contain numbers',
+        'number.integer': '"allergenId" must contain integers',
+        'number.positive': '"allergenId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"allergenIds" must be an array of numbers',
+    }),
+})
+  .custom((value, helpers) => {
+    // If both originalPrice and salePrice are provided, ensure salePrice <= originalPrice
+    if (value.salePrice !== undefined && value.originalPrice !== undefined) {
+      if (value.salePrice > value.originalPrice) {
+        return helpers.error('any.custom', { message: '"salePrice" cannot be greater than "originalPrice"' });
+      }
+    }
+    // If only salePrice is provided, ensure it's non-negative (already handled)
+    return value;
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const updateStoreSchema = Joi.object({
   storeName: Joi.string()
     .min(2)
@@ -1513,5 +1687,7 @@ module.exports.createAllergenValidator = validateSchema(createAllergenSchema)
 module.exports.updateAllergenValidator = validateSchema(updateAllergenSchema)
 module.exports.createOrderValidator = validateSchema(createOrderSchema)
 module.exports.updateOrderValidator = validateSchema(updateOrderSchema)
+module.exports.createProductValidatorAll = validateSchema(createProductSchemaAll)
+module.exports.updateProductValidatorAll = validateSchema(updateProductSchemaAll)
 
 

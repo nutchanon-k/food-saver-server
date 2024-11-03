@@ -1,7 +1,7 @@
 require("dotenv").config();
 const createError = require('../utils/createError')
-const { createOrderService, getOrderByIdService, getAllOrdersService, updateOrderService, deleteOrderService } = require("../services/orderService");
-const { getProductService, getProductByOrderItems, updateProductService } = require("../services/productService");
+const { createOrderService, getOrderByIdService, getAllOrdersService, updateOrderService, deleteOrderService, getOrderByUserIdService, getOrderItemsBySellerIdService } = require("../services/orderService");
+const { getProductService, getProductByOrderItems, updateProductService, getProductBySellerIdService } = require("../services/productService");
 const { createNotification } = require("../services/notificationService");
 
 // model Order {
@@ -210,3 +210,40 @@ module.exports.deleteOrder = async (req, res, next) => {
     }
 }
 
+module.exports.getBuyerOrders = async (req, res, next) => {
+    try {
+        const userId = req.user.id
+        const orders = await getOrderByUserIdService(+userId)
+
+        if (!orders || orders.length === 0) {
+            return createError(404, "Order not found")
+        }
+        res.status(200).json({
+            message: 'Get all orders successfully',
+            orders
+        })
+    } catch (err) {
+        next(err);
+    }
+}
+
+
+module.exports.getOrderItemBySellerId = async (req, res, next) => {
+    try {
+        const sellerId = req.user.id
+        const orderItems = await getOrderItemsBySellerIdService(+sellerId)
+
+        // if (!products || products.length === 0) {
+        //     return createError(404, "Product not found")
+        // }
+    
+        // const orderItems = products.map(product => product.orderItems)
+        console.log(orderItems)
+        res.status(200).json({
+            message: 'Get all orders successfully',
+            orderItems
+        })
+    } catch (err) {
+        next(err);
+    }
+}

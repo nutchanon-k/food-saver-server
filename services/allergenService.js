@@ -44,3 +44,12 @@ module.exports.deleteAllergenService = async (id) => {
         }
     })
 }
+
+
+module.exports.getAllergenByIdService = async (id) => {
+    return await prisma.allergen.findUnique({
+        where: {
+            id
+        }
+    })
+}

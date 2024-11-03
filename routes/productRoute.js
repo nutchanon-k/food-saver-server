@@ -2,8 +2,8 @@ const express = require("express");
 const authorize = require("../middlewares/roleAuthorize");
 const { authenticate } = require("../middlewares/authenticate");
 const productRoute = express.Router();
-const {createProductValidator, updateProductValidator} = require("../middlewares/validator");
-const { createProduct, getProductArray, deleteProduct, addProductCategories, addAllergensCategories, addProductAllergens, updateProduct, createProductAll } = require("../controllers/productController");
+const {createProductValidator, updateProductValidator, createProductValidatorAll, updateProductValidatorAll} = require("../middlewares/validator");
+const { createProduct, getProductArray, deleteProduct, addProductCategories, addAllergensCategories, addProductAllergens, updateProduct, createProductAll, updateProductAll } = require("../controllers/productController");
 const upload = require("../middlewares/upload");
 
 // POST /products (Seller Only)
@@ -11,7 +11,7 @@ const upload = require("../middlewares/upload");
 // GET /products
 productRoute.get('/',getProductArray)
 // PUT /products/:id (Owner Only)
-productRoute.patch('/:id',authenticate,authorize(['SELLER']),upload.single('imageUrl'),updateProductValidator,updateProduct)
+// productRoute.patch('/:id',authenticate,authorize(['SELLER']),upload.single('imageUrl'),updateProductValidator,updateProduct)
 // DELETE /products/:id (Admin/Owner Only)
 productRoute.delete('/:id',authenticate,authorize(['ADMIN','SELLER']),deleteProduct)
 // POST /products/:id/categories (Owner Only)
@@ -20,7 +20,9 @@ productRoute.post('/:id/categories',authenticate,authorize(['SELLER']),addProduc
 productRoute.post('/:id/allergens',authenticate,authorize(['SELLER']),addProductAllergens)
 
 //test
-// productRoute.post('/',authenticate,authorize(['SELLER']),upload.single('imageUrl'),createProductValidator,createProductAll)
+productRoute.post('/',authenticate,authorize(['SELLER']),upload.single('imageUrl'),createProductValidatorAll,createProductAll)
+productRoute.patch('/:id',authenticate,authorize(['SELLER']),upload.single('imageUrl'),updateProductValidatorAll,updateProductAll)
+
 
 module.exports = productRoute
 

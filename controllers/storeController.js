@@ -7,16 +7,7 @@ const cloudinary = require('../configs/cloudinary')
 
 module.exports.createStore = async(req,res,next) => {
   try {
-    const {
-      storeName,
-      storeAddress,
-      storeDetails,
-      phoneNumber,
-      timeOpen,
-      timeClose,
-      latitude,
-      longitude,
-    } = req.body
+    const {storeName,storeAddress,storeDetails,phoneNumber,timeOpen,timeClose,latitude,longitude,} = req.body
     const userId = req.user.id
     // Find if user already created store
     const isStoreExist = await getStoreByUserId(userId)
