@@ -3,11 +3,11 @@ const authorize = require("../middlewares/roleAuthorize");
 const { authenticate } = require("../middlewares/authenticate");
 const productRoute = express.Router();
 const {createProductValidator, updateProductValidator} = require("../middlewares/validator");
-const { createProduct, getProductArray, deleteProduct, addProductCategories, addAllergensCategories, addProductAllergens, updateProduct } = require("../controllers/productController");
+const { createProduct, getProductArray, deleteProduct, addProductCategories, addAllergensCategories, addProductAllergens, updateProduct, createProductAll } = require("../controllers/productController");
 const upload = require("../middlewares/upload");
 
 // POST /products (Seller Only)
-productRoute.post('/',authenticate,authorize(['SELLER']),upload.single('imageUrl'),createProductValidator,createProduct)
+// productRoute.post('/',authenticate,authorize(['SELLER']),upload.single('imageUrl'),createProductValidator,createProduct)
 // GET /products
 productRoute.get('/',getProductArray)
 // PUT /products/:id (Owner Only)
@@ -18,6 +18,9 @@ productRoute.delete('/:id',authenticate,authorize(['ADMIN','SELLER']),deleteProd
 productRoute.post('/:id/categories',authenticate,authorize(['SELLER']),addProductCategories)
 // POST /products/:id/allergens (Owner Only)
 productRoute.post('/:id/allergens',authenticate,authorize(['SELLER']),addProductAllergens)
+
+//test
+// productRoute.post('/',authenticate,authorize(['SELLER']),upload.single('imageUrl'),createProductValidator,createProductAll)
 
 module.exports = productRoute
 

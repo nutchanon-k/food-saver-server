@@ -88,3 +88,30 @@ module.exports.getProductService = (productId) => {
     }
   })
 }
+
+
+module.exports.getProductByOrderItems = async(orderItems) => {
+  return await prisma.product.findMany({
+    where : {
+      id : {
+        in : orderItems.map(item => item.productId)
+      }
+    },
+    select: {
+      store: true,
+    },
+  })
+}
+
+module.exports.getProductByOrderItems = async(productDonations) => {
+  return await prisma.product.findMany({
+    where : {
+      id : {
+        in : productDonations.map(item => item.productId)
+      }
+    },
+    select: {
+      store: true,
+    },
+  })
+}

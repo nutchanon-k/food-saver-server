@@ -927,16 +927,6 @@ const productDonationItemSchema = Joi.object({
 
 // Define the main schema for Donation creation
 const createDonationSchema = Joi.object({
-  sellerId: Joi.number()
-    .integer()
-    .positive()
-    .required()
-    .messages({
-      'number.base': `"sellerId" must be a number`,
-      'number.integer': `"sellerId" must be an integer`,
-      'number.positive': `"sellerId" must be a positive number`,
-      'any.required': `"sellerId" is a required field`,
-    }),
 
   foundationId: Joi.number()
     .integer()
@@ -1112,13 +1102,6 @@ module.exports.searchDonationSchema = Joi.object({
 //Cart item
 // Schema for creating a new CartItem
 const createCartItemSchema = Joi.object({
-  userId: Joi.number().integer().positive().required()
-    .messages({
-      'number.base': '"userId" must be a number',
-      'number.integer': '"userId" must be an integer',
-      'number.positive': '"userId" must be a positive number',
-      'any.required': '"userId" is a required field'
-    }),
   productId: Joi.number().integer().positive().required()
     .messages({
       'number.base': '"productId" must be a number',
@@ -1429,6 +1412,75 @@ module.exports.searchAllergenSchema = Joi.object({
 
 
 
+
+//order 
+
+// Define fields allowed for sorting
+const allowedSortByFieldsPaymentStatus = ['PENDING', 'COMPLETED', 'FAILED'];
+const allowedSortByFieldsPaymentMethod = ['PROMPTPAY', 'CREDIT_CARD'];
+
+// Schema for creating a new Order
+const createOrderSchema = Joi.object({
+  paymentMethod: Joi.string().valid(...allowedSortByFieldsPaymentMethod).required()
+    .messages({
+      'string.base': '"paymentMethod" must be a string',
+      'any.only': `"paymentMethod" must be one of [${allowedSortByFieldsPaymentMethod.join(', ')}]`,
+      'any.required': '"paymentMethod" is a required field',
+    }),
+  orderItems: Joi.array().items(
+    Joi.object({
+      productId: Joi.number().integer().positive().required()
+        .messages({
+          'number.base': '"productId" must be a number',
+          'number.integer': '"productId" must be an integer',
+          'number.positive': '"productId" must be a positive number',
+          'any.required': '"productId" is a required field',
+        }),
+      quantity: Joi.number().integer().min(1).required()
+        .messages({
+          'number.base': '"quantity" must be a number',
+          'number.integer': '"quantity" must be an integer',
+          'number.min': '"quantity" must be at least 1',
+          'any.required': '"quantity" is a required field',
+        }),
+      unitPrice: Joi.number().precision(2).min(0).required()
+        .messages({
+          'number.base': '"unitPrice" must be a number',
+          'number.precision': '"unitPrice" must have at most 2 decimal places',
+          'number.min': '"unitPrice" must be at least 0',
+          'any.required': '"unitPrice" is a required field',
+        }),
+    })
+  ).min(1).required()
+    .messages({
+      'array.base': '"orderItems" must be an array',
+      'array.min': '"orderItems" must contain at least 1 items',
+      'any.required': '"orderItems" is a required field',
+    }),
+});
+
+// Schema for updating an existing Order
+const updateOrderSchema = Joi.object({
+  paymentStatus: Joi.string().valid(...allowedSortByFieldsPaymentStatus).optional()
+    .messages({
+      'string.base': '"paymentStatus" must be a string',
+      'any.only': `"paymentStatus" must be one of [${allowedSortByFieldsPaymentStatus.join(', ')}]`,
+    }),
+  paymentMethod: Joi.string().valid(...allowedSortByFieldsPaymentMethod).optional()
+    .messages({
+      'string.base': '"paymentMethod" must be a string',
+      'any.only': `"paymentMethod" must be one of [${allowedSortByFieldsPaymentMethod.join(', ')}]`,
+    }),
+  isPickUpped: Joi.boolean().optional()
+    .messages({
+      'boolean.base': '"isPickUpped" must be a boolean',
+    }),
+}).or('paymentStatus', 'paymentMethod', 'isPickUpped') // Ensure at least one field is being updated
+  .messages({
+    'object.missing': 'At least one of "paymentStatus", "paymentMethod", or "isPickUpped" must be provided for update',
+  });
+
+
 const validateSchema = (schema) => (req, res, next) => {
   const { value, error } = schema.validate(req.body)
 
@@ -1459,5 +1511,7 @@ module.exports.createCategoryValidator = validateSchema(createCategorySchema)
 module.exports.updateCategoryValidator = validateSchema(updateCategorySchema)
 module.exports.createAllergenValidator = validateSchema(createAllergenSchema)
 module.exports.updateAllergenValidator = validateSchema(updateAllergenSchema)
+module.exports.createOrderValidator = validateSchema(createOrderSchema)
+module.exports.updateOrderValidator = validateSchema(updateOrderSchema)
 
 

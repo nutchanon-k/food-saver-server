@@ -9,6 +9,7 @@ const cloudinary = require('../configs/cloudinary');
 const { updateFoundationService } = require("../services/foundationService");
 const { getStoreById } = require("./storeController");
 const getPublicId = require("../utils/getPublicId");
+const { getCategoryById } = require("../services/categoryService");
 
 module.exports.createProduct = async (req, res, next) => {
   try {
@@ -23,8 +24,8 @@ module.exports.createProduct = async (req, res, next) => {
     const userId = req.user.id
     // Check if store exist
     const isStoreExist = await getStoreByUserId(userId)
-    if (!isStoreExist){
-      return createError(404,"Store not found")
+    if (!isStoreExist) {
+      return createError(404, "Store not found")
     }
     const storeId = isStoreExist.id
     console.log(storeId)
@@ -41,32 +42,32 @@ module.exports.createProduct = async (req, res, next) => {
     const image = uploadResult.secure_url || ""
 
     const data = {
-      storeId : storeId,
+      storeId: storeId,
       name,
       description,
       originalPrice,
       salePrice,
       expirationDate,
-      imageUrl : image,
-      quantity : +quantity,
+      imageUrl: image,
+      quantity: +quantity,
     }
 
     const product = await createProductService(data)
     res.status(200).json({
-      message : "created product successfully",
-      data : product
+      message: "created product successfully",
+      data: product
     })
   } catch (err) {
-    console.log(err);
+    next(err);
   }
 };
 
-module.exports.getProductArray = async(req,res,next) => {
+module.exports.getProductArray = async (req, res, next) => {
   try {
     const productArray = await getProductArrayService(req.query)
     res.status(200).json({
-      message : "Get all product",
-      data : productArray
+      message: "Get all product",
+      data: productArray
     })
   } catch (err) {
     console.log(err)
@@ -110,7 +111,7 @@ module.exports.deleteProduct = async (req, res, next) => {
   }
 };
 
-module.exports.addProductCategories = async(req,res,next) => {
+module.exports.addProductCategories = async (req, res, next) => {
   try {
     const { id } = req.params; // Get the product ID from the request parameters
     const categories = req.body
@@ -128,11 +129,11 @@ module.exports.addProductCategories = async(req,res,next) => {
 
     // Check if the user is allowed to delete the product
     if (role === 'SELLER' && !userProductIds.includes(+id)) {
-      console.log(userProductIds,id)
+      console.log(userProductIds, id)
       console.log(role === 'SELLER', userProductIds.includes(+id));
       return createError(403, "You are not allowed to add category to this product");
     }
-    
+
     const categoryData = categories.map(category => ({
       productId: +id,
       categoryId: +category // Assuming category has an id property
@@ -140,10 +141,10 @@ module.exports.addProductCategories = async(req,res,next) => {
 
     const addedCategory = await addCategory(categoryData)
     res.status(200).json({
-      message : "Categories added",
-      data : categoryData
+      message: "Categories added",
+      data: categoryData
     })
-    
+
   } catch (err) {
     console.log(err)
     res.status(500).json({
@@ -153,7 +154,7 @@ module.exports.addProductCategories = async(req,res,next) => {
   }
 }
 
-module.exports.addProductAllergens = async(req,res,next) => {
+module.exports.addProductAllergens = async (req, res, next) => {
   try {
     const { id } = req.params; // Get the product ID from the request parameters
     const allergens = req.body
@@ -171,20 +172,20 @@ module.exports.addProductAllergens = async(req,res,next) => {
 
     // 
     if (role === 'SELLER' && !userProductIds.includes(+id)) {
-      console.log(userProductIds,id)
+      console.log(userProductIds, id)
       console.log(role === 'SELLER', userProductIds.includes(+id));
       return createError(403, "You are not allowed to add allergen to this product");
     }
-    
+
     const allergenData = allergens.map(allergen => ({
       productId: +id,
       allergenId: +allergen // Assuming category has an id property
     }));
-  
+
     const addedAllergen = await addAllergen(allergenData)
     res.status(200).json({
-      message : "allergens added",
-      data : addedAllergen
+      message: "allergens added",
+      data: addedAllergen
     })
   } catch (err) {
     console.log(err)
@@ -195,9 +196,9 @@ module.exports.addProductAllergens = async(req,res,next) => {
   }
 }
 
-module.exports.updateProduct = async(req,res,next) => {
+module.exports.updateProduct = async (req, res, next) => {
   try {
-    const {id} = req.params
+    const { id } = req.params
     const userId = req.user.id
     const {
       name,
@@ -209,7 +210,7 @@ module.exports.updateProduct = async(req,res,next) => {
     } = req.body
     const product = await getProductService(id)
     if (!product) {
-      return createError(404,"product not found")
+      return createError(404, "product not found")
     }
     // ----------
     const fieldsToUpdate = {
@@ -223,24 +224,24 @@ module.exports.updateProduct = async(req,res,next) => {
     const cleanFieldsToUpdate = Object.fromEntries(
       Object.entries(fieldsToUpdate).filter(([key, value]) => value !== undefined)
     );
-    
+
     const haveFile = !!req.file
     let uploadResult = {}
     if (haveFile) {
-        uploadResult = await cloudinary.uploader.upload(req.file.path, {
-            public_id: path.parse(req.file.path).name
-        })
-        fs.unlink(req.file.path)
-        if (product.imageUrl) {
-            cloudinary.uploader.destroy(getPublicId(product.imageUrl))
-        }
-        cleanFieldsToUpdate.imageUrl = uploadResult.secure_url || ''
+      uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        public_id: path.parse(req.file.path).name
+      })
+      fs.unlink(req.file.path)
+      if (product.imageUrl) {
+        cloudinary.uploader.destroy(getPublicId(product.imageUrl))
+      }
+      cleanFieldsToUpdate.imageUrl = uploadResult.secure_url || ''
     }
-    const updatedProduct = await updateProductService(+id,cleanFieldsToUpdate)
+    const updatedProduct = await updateProductService(+id, cleanFieldsToUpdate)
     res.status(200).json({
       message: 'Update product success',
       data: updatedProduct
-  })
+    })
 
   } catch (err) {
     next(err)
@@ -248,3 +249,86 @@ module.exports.updateProduct = async(req,res,next) => {
   }
 
 }
+
+// module.exports.createProductAll = async (req, res, next) => {
+//   try {
+//     const {
+//       name,
+//       description,
+//       originalPrice,
+//       salePrice,
+//       expirationDate,
+//       quantity,
+//       categoryId,
+//       allergenId,
+//     } = req.body;
+//     const userId = req.user.id
+//     // Check if store exist
+//     const isStoreExist = await getStoreByUserId(userId)
+//     if (!isStoreExist) {
+//       return createError(404, "Store not found")
+//     }
+//     const storeId = isStoreExist.id
+//     // console.log(storeId)
+//     // Preparing data for creating
+//     const haveFile = !!req.file;
+//     let uploadResult = {};
+//     if (haveFile) {
+//       uploadResult = await cloudinary.uploader.upload(req.file.path, {
+//         overwrite: true,
+//         public_id: path.parse(req.file.path).name,
+//       });
+//       fs.unlink(req.file.path);
+//     }
+//     const image = uploadResult.secure_url || ""
+
+//     const data = {
+//       storeId: storeId,
+//       name,
+//       description,
+//       originalPrice,
+//       salePrice,
+//       expirationDate,
+//       imageUrl: image,
+//       quantity: +quantity,
+//     }
+
+//     const product = await createProductService(data)
+
+//     const checkCategory = categoryId.map(categoryId => {
+//       const isExist = getCategoryById(categoryId)
+//       if (!isExist) {
+//         return createError(404, "Category not found")
+//       }
+//       return categoryId
+//     })
+
+//     const productCategoryData = checkCategory.map(category => ({
+//       productId: +product.id,
+//       categoryId: +category // Assuming category has an id property
+//     }));
+//     const addedCategory = await addCategory(productCategoryData)
+
+
+
+
+//     res.status(200).json({
+//       message: "created product successfully",
+//       data: product
+//     })
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+
+// model ProductCategories {
+//   productId  Int @map("product_id")
+//   categoryId Int @map("category_id")
+
+//   // Relations
+//   product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade )
+//   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade )
+
+//   @@id([productId, categoryId])
+// }

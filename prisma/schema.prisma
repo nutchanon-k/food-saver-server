@@ -55,7 +55,7 @@ model OAuthProvider {
   createdAt      DateTime          @default(now()) @map("created_at")
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade )
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerUserId])
 }
@@ -83,7 +83,7 @@ model Store {
   updatedAt      DateTime    @updatedAt @map("updated_at")
 
   // Relations
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade )
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   products       Product[]
   reviews        Review[]
   favoriteStores FavoriteStore[]
@@ -108,7 +108,7 @@ model Product {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  store             Store               @relation(fields: [storeId], references: [id], onDelete: Cascade )
+  store             Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   reviews           Review[]
   cartItems         CartItem[]
   orderItems        OrderItem[]
@@ -141,8 +141,8 @@ model ProductCategories {
   categoryId Int @map("category_id")
 
   // Relations
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade )
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade )
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([productId, categoryId])
 }
@@ -152,8 +152,8 @@ model ProductAllergen {
   allergenId Int @map("allergen_id")
 
   // Relations
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade )
-  allergen Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade )
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  allergen Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
 
   @@id([productId, allergenId])
 }
@@ -164,8 +164,8 @@ model ProductDonation {
   quantity   Int
 
   // Relations
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade )
-  donation Donation @relation(fields: [donationId], references: [id], onDelete: Cascade )
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  donation Donation @relation(fields: [donationId], references: [id], onDelete: Cascade)
 
   @@id([productId, donationId])
 }
@@ -180,8 +180,8 @@ model Donation {
   totalPrice   Decimal  @map("total_price") @db.Decimal(10, 2)
 
   // Relations
-  seller           User              @relation("SellerDonations", fields: [sellerId], references: [id], onDelete: Cascade )
-  foundation       Foundation        @relation(fields: [foundationId], references: [id], onDelete: Cascade )
+  seller           User              @relation("SellerDonations", fields: [sellerId], references: [id], onDelete: Cascade)
+  foundation       Foundation        @relation(fields: [foundationId], references: [id], onDelete: Cascade)
   productDonations ProductDonation[]
 }
 
@@ -210,9 +210,9 @@ model Review {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user    User     @relation(fields: [userId], references: [id] , onDelete: Cascade )
-  store   Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade )
-  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade )
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store   Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Chat {
@@ -222,8 +222,8 @@ model Chat {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  buyer    User      @relation("BuyerChats", fields: [buyerId], references: [id], onDelete: Cascade )
-  seller   User      @relation("SellerChats", fields: [sellerId], references: [id], onDelete: Cascade )
+  buyer    User      @relation("BuyerChats", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller   User      @relation("SellerChats", fields: [sellerId], references: [id], onDelete: Cascade)
   messages Message[]
 }
 
@@ -235,8 +235,8 @@ model Message {
   sentAt      DateTime @default(now()) @map("sent_at")
 
   // Relations
-  chat   Chat @relation(fields: [chatId], references: [id], onDelete: Cascade )
-  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade )
+  chat   Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model FavoriteStore {
@@ -245,8 +245,8 @@ model FavoriteStore {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade )
-  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade )
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   @@id([userId, storeId])
 }
@@ -258,8 +258,8 @@ model CartItem {
   quantity  Int
 
   // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade )
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade )
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
@@ -268,21 +268,21 @@ model Order {
   id            Int           @id @default(autoincrement())
   userId        Int           @map("user_id")
   totalPrice    Decimal       @map("total_price") @db.Decimal(10, 2)
-  paymentStatus PaymentStatus @default(Pending) @map("payment_status")
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
   paymentMethod PaymentMethod @map("payment_method")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
   isPickUpped   Boolean       @default(false) @map("is_picked_up")
 
   // Relations
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade )
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
 }
 
 enum PaymentStatus {
-  Pending
-  Completed
-  Failed
+  PENDING
+  COMPLETED
+  FAILED
 }
 
 enum PaymentMethod {
@@ -291,15 +291,15 @@ enum PaymentMethod {
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
-  orderId   Int     @map("order_id")
-  productId Int     @map("product_id")
-  quantity  Int
-  price     Decimal @map("price") @db.Decimal(10, 2)
+  id         Int     @id @default(autoincrement())
+  orderId    Int     @map("order_id")
+  productId  Int     @map("product_id")
+  quantity   Int
+  unitPrice  Decimal @map("unit_price") @db.Decimal(10, 2)
 
   // Relations
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade )
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade )
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -311,5 +311,5 @@ model Notification {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade )
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
