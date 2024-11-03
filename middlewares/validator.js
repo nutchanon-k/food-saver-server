@@ -205,347 +205,602 @@ const updateUserSchema = Joi.object({
     .messages({
       'boolean.base': `"isActive" must be a boolean`,
     }),
+})
+
+const allowedSortByFieldsUser = ['id', 'firstName', 'lastName', 'email', 'role', 'phoneNumber', 'isActive'];
+
+// Define allowed roles
+const allowedRolesUser = ['ADMIN', 'BUYER', 'SELLER']; // Adjust as needed according to your model
+
+// Create schema for searching User
+module.exports.searchUserSchema = Joi.object({
+  id: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"id" must be a number',
+      'number.integer': '"id" must be an integer',
+      'number.positive': '"id" must be a positive number',
+    }),
+  firstName: Joi.string().max(50)
+    .messages({
+      'string.base': '"firstName" must be a string',
+      'string.empty': '"firstName" cannot be empty',
+      'string.max': '"firstName" must be at most 50 characters long',
+    }),
+  lastName: Joi.string().max(50)
+    .messages({
+      'string.base': '"lastName" must be a string',
+      'string.empty': '"lastName" cannot be empty',
+      'string.max': '"lastName" must be at most 50 characters long',
+    }),
+  email: Joi.string().email().max(100)
+    .messages({
+      'string.base': '"email" must be a string',
+      'string.email': '"email" must be a valid email',
+      'string.max': '"email" must be at most 100 characters long',
+    }),
+  role: Joi.string().valid(...allowedRolesUser)
+    .messages({
+      'string.base': '"role" must be a string',
+      'any.only': `"role" must be one of [${allowedRolesUser.join(', ')}]`,
+    }),
+  phoneNumber: Joi.string().pattern(/^[0-9]{10}$/).optional()
+    .messages({
+      'string.base': '"phoneNumber" must be a string',
+      'string.pattern.base': '"phoneNumber" must be a 10-digit number',
+    }),
+  isActive: Joi.boolean().optional()
+    .messages({
+      'boolean.base': '"isActive" must be a boolean (true or false)',
+    }),
+  sortBy: Joi.string().valid(...allowedSortByFieldsUser).optional()
+    .messages({
+      'string.base': '"sortBy" must be a string',
+      'any.only': `"sortBy" must be one of [${allowedSortByFieldsUser.join(', ')}]`,
+    }),
+  sortOrder: Joi.string().valid('asc', 'desc').optional()
+    .messages({
+      'string.base': '"sortOrder" must be a string',
+      'any.only': '"sortOrder" must be "asc" or "desc"',
+    }),
+  page: Joi.number().integer().min(1).default(1)
+    .messages({
+      'number.base': '"page" must be a number',
+      'number.integer': '"page" must be an integer',
+      'number.min': '"page" must be at least 1',
+    }),
+  limit: Joi.number().integer().min(1).max(200)
+    .messages({
+      'number.base': '"limit" must be a number',
+      'number.integer': '"limit" must be an integer',
+      'number.min': '"limit" must be at least 1',
+      'number.max': '"limit" must be at most 200',
+    }),
+})
+
+
+
+
+
+
+
+
+
+
+
+
+const createStoreSchema = Joi.object({
+  storeName: Joi.string()
+    .min(2)
+    .max(50)
+    .required()
+    .messages({
+      'string.base': `"storeName" should be a type of 'text'`,
+      'string.empty': `"storeName" cannot be an empty field`,
+      'string.min': `"storeName" should have a minimum length of {#limit}`,
+      'string.max': `"storeName" should have a maximum length of {#limit}`,
+      'any.required': `"storeName" is a required field`,
+    }),
+  storeAddress: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      'string.base': `"storeAddress" should be a type of 'text'`,
+      'string.empty': `"storeAddress" cannot be an empty field`,
+      'string.min': `"storeAddress" should have a minimum length of {#limit}`,
+      'string.max': `"storeAddress" should have a maximum length of {#limit}`,
+      'any.required': `"storeAddress" is a required field`,
+    }),
+  storeDetails: Joi.string()
+    .min(2)
+    .max(100)
+    .optional()
+    .messages({
+      'string.base': `"storeAddress" should be a type of 'text'`,
+      'string.min': `"storeAddress" should have a minimum length of {#limit}`,
+      'string.max': `"storeAddress" should have a maximum length of {#limit}`,
+    }),
+  profilePicture: Joi.string()
+    .uri()
+    .optional()
+    .messages({
+      'string.uri': `"profilePicture" must be a valid URI`,
+    }),
+  phoneNumber: Joi.string()
+    .pattern(phoneRegex)
+    .optional()
+    .messages({
+      'string.pattern.base': `"phoneNumber" must be a valid phone number`,
+    }),
+  timeOpen: Joi.string()
+    .pattern(timeRegex)
+    .required()
+    .messages({
+      'string.base': `"timeOpen" should be a valid time in HH:mm format`,
+      'string.empty': `"timeOpen" cannot be an empty field`,
+      'string.pattern.base': `"timeOpen" should follow the HH:mm format`,
+      'any.required': `"timeOpen" is a required field`,
+    }),
+  timeClose: Joi.string()
+    .pattern(timeRegex)
+    .required()
+    .messages({
+      'string.base': `"timeClose" should be a valid time in HH:mm format`,
+      'string.empty': `"timeClose" cannot be an empty field`,
+      'string.pattern.base': `"timeClose" should follow the HH:mm format`,
+      'any.required': `"timeClose" is a required field`,
+    }),
+  latitude: Joi.number()
+    .min(-90)
+    .max(90)
+    .required()
+    .messages({
+      'number.base': `"latitude" should be a valid number`,
+      'number.min': `"latitude" should not be less than -90`,
+      'number.max': `"latitude" should not be more than 90`,
+      'any.required': `"latitude" is a required field`,
+    }),
+  longitude: Joi.number()
+    .min(-180)
+    .max(180)
+    .required()
+    .messages({
+      'number.base': `"longitude" should be a valid number`,
+      'number.min': `"longitude" should not be less than -180`,
+      'number.max': `"longitude" should not be more than 180`,
+      'any.required': `"longitude" is a required field`,
+    })
+}).custom((obj, helpers) => {
+  // Additional custom validation for timeOpen < timeClose
+  const [openHour, openMinute] = obj.timeOpen.split(':').map(Number);
+  const [closeHour, closeMinute] = obj.timeClose.split(':').map(Number);
+
+  if (openHour > closeHour || (openHour === closeHour && openMinute >= closeMinute)) {
+    return helpers.message(`"timeClose" should be after "timeOpen"`);
+  }
+  return obj;
+});
+
+const createProductSchema = Joi.object({
+  // name,
+  name: Joi.string()
+    .min(2)
+    .max(50)
+    .required()
+    .messages({
+      'string.base': `"name" should be a type of 'text'`,
+      'string.empty': `"name" cannot be an empty field`,
+      'string.min': `"name" should have a minimum length of {#limit}`,
+      'string.max': `"name" should have a maximum length of {#limit}`,
+    }),
+  // description,
+  description: Joi.string()
+    .min(2)
+    .max(100)
+    .optional()
+    .messages({
+      'string.base': `"description" should be a type of 'text'`,
+      'string.min': `"description" should have a minimum length of {#limit}`,
+      'string.max': `"description" should have a maximum length of {#limit}`,
+    }),
+  // originalPrice,
+  originalPrice: Joi.number()
+    .precision(2)
+    .positive()
+    .required()
+    .messages({
+      'number.base': `"originalPrice" should be a type of 'number'`,
+      'number.positive': `"originalPrice" should be a positive number`,
+      'number.precision': `"originalPrice" should have at most {#limit} decimal places`,
+    }),
+
+  // salePrice,
+  salePrice: Joi.number()
+    .precision(2)
+    .positive()
+    .required()
+    .messages({
+      'number.base': `"salePrice" should be a type of 'number'`,
+      'number.positive': `"salePrice" should be a positive number`,
+      'number.precision': `"salePrice" should have at most {#limit} decimal places`,
+    }),
+
+  // expirationDate,
+  expirationDate: Joi.date()
+    .optional()
+    .messages({
+      'date.base': `"expirationDate" should be a valid date`,
+    }),
+
+  // quantity,
+  quantity: Joi.number()
+    .integer()
+    .min(0)
+    .required()
+    .messages({
+      'number.base': `"quantity" should be a type of 'number'`,
+      'number.integer': `"quantity" should be an integer`,
+      'number.min': `"quantity" should be at least {#limit}`,
+    }),
+  imageUrl: Joi.string()
+    .uri()
+    .optional()
+    .messages({
+      'string.uri': `"imageUrl" must be a valid URI`,
+    }),
+}).custom((obj, helpers) => {
+  // Custom validation to ensure salePrice < originalPrice if both are provided
+  if (obj.originalPrice && obj.salePrice && obj.salePrice >= obj.originalPrice) {
+    return helpers.message(`"salePrice" should be less than "originalPrice"`);
+  }
+  return obj;
 }).min(1).messages({
   'object.min': 'At least one field must be updated',
 });
 
-const createStoreSchema = Joi.object({
-    storeName : Joi.string()
-        .min(2)
-        .max(50)
-        .required()
-        .messages({
-            'string.base': `"storeName" should be a type of 'text'`,
-            'string.empty': `"storeName" cannot be an empty field`,
-            'string.min': `"storeName" should have a minimum length of {#limit}`,
-            'string.max': `"storeName" should have a maximum length of {#limit}`,
-            'any.required': `"storeName" is a required field`,
-        }),
-    storeAddress : Joi.string()
-        .min(2)
-        .max(100)
-        .required()
-        .messages({
-            'string.base': `"storeAddress" should be a type of 'text'`,
-            'string.empty': `"storeAddress" cannot be an empty field`,
-            'string.min': `"storeAddress" should have a minimum length of {#limit}`,
-            'string.max': `"storeAddress" should have a maximum length of {#limit}`,
-            'any.required': `"storeAddress" is a required field`,
-        }),
-    storeDetails : Joi.string()
-        .min(2)
-        .max(100)
-        .optional()
-        .messages({
-            'string.base': `"storeAddress" should be a type of 'text'`,
-            'string.min': `"storeAddress" should have a minimum length of {#limit}`,
-            'string.max': `"storeAddress" should have a maximum length of {#limit}`,
-        }),
-    profilePicture: Joi.string()
-        .uri()
-        .optional()
-        .messages({
-            'string.uri': `"profilePicture" must be a valid URI`,
-        }),
-    phoneNumber: Joi.string()
-        .pattern(phoneRegex)
-        .optional()
-        .messages({
-            'string.pattern.base': `"phoneNumber" must be a valid phone number`,
-        }),
-        timeOpen: Joi.string()
-        .pattern(timeRegex)
-        .required()
-        .messages({
-            'string.base': `"timeOpen" should be a valid time in HH:mm format`,
-            'string.empty': `"timeOpen" cannot be an empty field`,
-            'string.pattern.base': `"timeOpen" should follow the HH:mm format`,
-            'any.required': `"timeOpen" is a required field`,
-        }),
-    timeClose: Joi.string()
-        .pattern(timeRegex)
-        .required()
-        .messages({
-            'string.base': `"timeClose" should be a valid time in HH:mm format`,
-            'string.empty': `"timeClose" cannot be an empty field`,
-            'string.pattern.base': `"timeClose" should follow the HH:mm format`,
-            'any.required': `"timeClose" is a required field`,
-        }),
-    latitude: Joi.number()
-        .min(-90)
-        .max(90)
-        .required()
-        .messages({
-            'number.base': `"latitude" should be a valid number`,
-            'number.min': `"latitude" should not be less than -90`,
-            'number.max': `"latitude" should not be more than 90`,
-            'any.required': `"latitude" is a required field`,
-        }),
-    longitude: Joi.number()
-        .min(-180)
-        .max(180)
-        .required()
-        .messages({
-            'number.base': `"longitude" should be a valid number`,
-            'number.min': `"longitude" should not be less than -180`,
-            'number.max': `"longitude" should not be more than 180`,
-            'any.required': `"longitude" is a required field`,
-        })
-}).custom((obj, helpers) => {
-    // Additional custom validation for timeOpen < timeClose
-    const [openHour, openMinute] = obj.timeOpen.split(':').map(Number);
-    const [closeHour, closeMinute] = obj.timeClose.split(':').map(Number);
-    
-    if (openHour > closeHour || (openHour === closeHour && openMinute >= closeMinute)) {
-        return helpers.message(`"timeClose" should be after "timeOpen"`);
-    }
-    return obj;
-});
-
-const createProductSchema = Joi.object({
-    // name,
-    name : Joi.string()
-        .min(2)
-        .max(50)
-        .required()
-        .messages({
-            'string.base': `"name" should be a type of 'text'`,
-            'string.empty': `"name" cannot be an empty field`,
-            'string.min': `"name" should have a minimum length of {#limit}`,
-            'string.max': `"name" should have a maximum length of {#limit}`,
-        }),
-    // description,
-    description : Joi.string()
-        .min(2)
-        .max(100)
-        .optional()
-        .messages({
-            'string.base': `"description" should be a type of 'text'`,
-            'string.min': `"description" should have a minimum length of {#limit}`,
-            'string.max': `"description" should have a maximum length of {#limit}`,
-        }),
-    // originalPrice,
-    originalPrice: Joi.number()
-        .precision(2)
-        .positive()
-        .required()
-        .messages({
-            'number.base': `"originalPrice" should be a type of 'number'`,
-            'number.positive': `"originalPrice" should be a positive number`,
-            'number.precision': `"originalPrice" should have at most {#limit} decimal places`,
-        }),
-
-    // salePrice,
-    salePrice: Joi.number()
-        .precision(2)
-        .positive()
-        .required()
-        .messages({
-            'number.base': `"salePrice" should be a type of 'number'`,
-            'number.positive': `"salePrice" should be a positive number`,
-            'number.precision': `"salePrice" should have at most {#limit} decimal places`,
-        }),
-
-    // expirationDate,
-    expirationDate: Joi.date()
-        .optional()
-        .messages({
-            'date.base': `"expirationDate" should be a valid date`,
-        }),
-
-    // quantity,
-    quantity: Joi.number()
-        .integer()
-        .min(0)
-        .required()
-        .messages({
-            'number.base': `"quantity" should be a type of 'number'`,
-            'number.integer': `"quantity" should be an integer`,
-            'number.min': `"quantity" should be at least {#limit}`,
-        }),
-    imageUrl: Joi.string()
-        .uri()
-        .optional()
-        .messages({
-            'string.uri': `"imageUrl" must be a valid URI`,
-        }),
-}).custom((obj, helpers) => {
-    // Custom validation to ensure salePrice < originalPrice if both are provided
-    if (obj.originalPrice && obj.salePrice && obj.salePrice >= obj.originalPrice) {
-        return helpers.message(`"salePrice" should be less than "originalPrice"`);
-    }
-    return obj;
-}).min(1).messages({
-    'object.min': 'At least one field must be updated',
-});
-
 const updateProductSchema = Joi.object({
-    name: Joi.string()
-        .min(2)
-        .max(50)
-        .optional()
-        .messages({
-            'string.base': `"name" should be a type of 'text'`,
-            'string.empty': `"name" cannot be an empty field`,
-            'string.min': `"name" should have a minimum length of {#limit}`,
-            'string.max': `"name" should have a maximum length of {#limit}`,
-        }),
+  name: Joi.string()
+    .min(2)
+    .max(50)
+    .optional()
+    .messages({
+      'string.base': `"name" should be a type of 'text'`,
+      'string.empty': `"name" cannot be an empty field`,
+      'string.min': `"name" should have a minimum length of {#limit}`,
+      'string.max': `"name" should have a maximum length of {#limit}`,
+    }),
 
-    description: Joi.string()
-        .min(2)
-        .max(100)
-        .optional()
-        .messages({
-            'string.base': `"description" should be a type of 'text'`,
-            'string.min': `"description" should have a minimum length of {#limit}`,
-            'string.max': `"description" should have a maximum length of {#limit}`,
-        }),
+  description: Joi.string()
+    .min(2)
+    .max(100)
+    .optional()
+    .messages({
+      'string.base': `"description" should be a type of 'text'`,
+      'string.min': `"description" should have a minimum length of {#limit}`,
+      'string.max': `"description" should have a maximum length of {#limit}`,
+    }),
 
-    originalPrice: Joi.number()
-        .precision(2)
-        .positive()
-        .optional()
-        .messages({
-            'number.base': `"originalPrice" should be a type of 'number'`,
-            'number.positive': `"originalPrice" should be a positive number`,
-            'number.precision': `"originalPrice" should have at most {#limit} decimal places`,
-        }),
+  originalPrice: Joi.number()
+    .precision(2)
+    .positive()
+    .optional()
+    .messages({
+      'number.base': `"originalPrice" should be a type of 'number'`,
+      'number.positive': `"originalPrice" should be a positive number`,
+      'number.precision': `"originalPrice" should have at most {#limit} decimal places`,
+    }),
 
-    salePrice: Joi.number()
-        .precision(2)
-        .positive()
-        .optional()
-        .messages({
-            'number.base': `"salePrice" should be a type of 'number'`,
-            'number.positive': `"salePrice" should be a positive number`,
-            'number.precision': `"salePrice" should have at most {#limit} decimal places`,
-        }),
+  salePrice: Joi.number()
+    .precision(2)
+    .positive()
+    .optional()
+    .messages({
+      'number.base': `"salePrice" should be a type of 'number'`,
+      'number.positive': `"salePrice" should be a positive number`,
+      'number.precision': `"salePrice" should have at most {#limit} decimal places`,
+    }),
 
-    expirationDate: Joi.date()
-        .optional()
-        .messages({
-            'date.base': `"expirationDate" should be a valid date`,
-        }),
+  expirationDate: Joi.date()
+    .optional()
+    .messages({
+      'date.base': `"expirationDate" should be a valid date`,
+    }),
 
-    quantity: Joi.number()
-        .integer()
-        .min(0)
-        .optional()
-        .messages({
-            'number.base': `"quantity" should be a type of 'number'`,
-            'number.integer': `"quantity" should be an integer`,
-            'number.min': `"quantity" should be at least {#limit}`,
-        }),
+  quantity: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.base': `"quantity" should be a type of 'number'`,
+      'number.integer': `"quantity" should be an integer`,
+      'number.min': `"quantity" should be at least {#limit}`,
+    }),
 
-    imageUrl: Joi.string()
-        .uri()
-        .optional()
-        .messages({
-            'string.uri': `"imageUrl" must be a valid URI`,
-        }),
+  imageUrl: Joi.string()
+    .uri()
+    .optional()
+    .messages({
+      'string.uri': `"imageUrl" must be a valid URI`,
+    }),
 }).custom((obj, helpers) => {
-    // Custom validation to ensure salePrice < originalPrice if both are provided
-    if (obj.originalPrice && obj.salePrice && obj.salePrice >= obj.originalPrice) {
-        return helpers.message(`"salePrice" should be less than "originalPrice"`);
-    }
-    return obj;
+  // Custom validation to ensure salePrice < originalPrice if both are provided
+  if (obj.originalPrice && obj.salePrice && obj.salePrice >= obj.originalPrice) {
+    return helpers.message(`"salePrice" should be less than "originalPrice"`);
+  }
+  return obj;
 })
+
+
+
+
+// Schema for creating a new Product
+const createProductSchemaAll = Joi.object({
+  name: Joi.string().min(1).max(255).required()
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" must be at least 1 characters long',
+      'string.max': '"name" must be at most 255 characters long',
+      'any.required': '"name" is a required field',
+    }),
+  description: Joi.string().min(5).max(1000).optional()
+    .messages({
+      'string.base': '"description" must be a string',
+      'string.min': '"description" must be at least 5 characters long',
+      'string.max': '"description" must be at most 100 characters long',
+    }),
+  originalPrice: Joi.number().precision(2).min(0).required()
+    .messages({
+      'number.base': '"originalPrice" must be a number',
+      'number.precision': '"originalPrice" must have at most 2 decimal places',
+      'number.min': '"originalPrice" must be at least 0',
+      'any.required': '"originalPrice" is a required field',
+    }),
+  salePrice: Joi.number().precision(2).min(0).required()
+    .messages({
+      'number.base': '"salePrice" must be a number',
+      'number.precision': '"salePrice" must have at most 2 decimal places',
+      'number.min': '"salePrice" must be at least 0',
+      'any.required': '"salePrice" is a required field',
+    }),
+  expirationDate: Joi.date().greater('now').optional()
+    .messages({
+      'date.base': '"expirationDate" must be a valid date',
+      'date.greater': '"expirationDate" must be a date in the future',
+    }),
+  imageUrl: Joi.string().uri().optional()
+    .messages({
+      'string.base': '"imageUrl" must be a string',
+      'string.empty': '"imageUrl" cannot be empty',
+      'string.uri': '"imageUrl" must be a valid URI',
+      'any.required': '"imageUrl" is a required field',
+    }),
+  quantity: Joi.number().integer().min(0).default(0)
+    .messages({
+      'number.base': '"quantity" must be a number',
+      'number.integer': '"quantity" must be an integer',
+      'number.min': '"quantity" must be at least {#limit}',
+    }),
+  categoryId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"categoryId" must contain numbers',
+        'number.integer': '"categoryId" must contain integers',
+        'number.positive': '"categoryId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"categoryIds" must be an array of numbers',
+    }),
+  allergenId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"allergenId" must contain numbers',
+        'number.integer': '"allergenId" must contain integers',
+        'number.positive': '"allergenId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"allergenIds" must be an array of numbers',
+    }),
+})
+  .custom((value, helpers) => {
+    // Ensure salePrice is not greater than originalPrice
+    if (value.salePrice > value.originalPrice) {
+      return helpers.error('any.custom', { message: '"salePrice" cannot be greater than "originalPrice"' });
+    }
+    return value;
+  })
+
+// Schema for updating an existing Product
+const updateProductSchemaAll = Joi.object({
+  name: Joi.string().min(1).max(255).optional()
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" must be at least {#limit} characters long',
+      'string.max': '"name" must be at most {#limit} characters long',
+    }),
+  description: Joi.string().min(5).max(1000).optional()
+    .messages({
+      'string.base': '"description" must be a string',
+      'string.min': '"description" must be at least {#limit} characters long',
+      'string.max': '"description" must be at most {#limit} characters long',
+    }),
+  originalPrice: Joi.number().precision(2).min(0).optional()
+    .messages({
+      'number.base': '"originalPrice" must be a number',
+      'number.precision': '"originalPrice" must have at most {#limit} decimal places',
+      'number.min': '"originalPrice" must be at least {#limit}',
+    }),
+  salePrice: Joi.number().precision(2).min(0).optional()
+    .messages({
+      'number.base': '"salePrice" must be a number',
+      'number.precision': '"salePrice" must have at most {#limit} decimal places',
+      'number.min': '"salePrice" must be at least {#limit}',
+    }),
+  expirationDate: Joi.date().greater('now').optional()
+    .messages({
+      'date.base': '"expirationDate" must be a valid date',
+      'date.greater': '"expirationDate" must be a date in the future',
+    }),
+  imageUrl: Joi.string().uri().optional()
+    .messages({
+      'string.base': '"imageUrl" must be a string',
+      'string.empty': '"imageUrl" cannot be empty',
+      'string.uri': '"imageUrl" must be a valid URI',
+    }),
+  quantity: Joi.number().integer().min(0).optional()
+    .messages({
+      'number.base': '"quantity" must be a number',
+      'number.integer': '"quantity" must be an integer',
+      'number.min': '"quantity" must be at least {#limit}',
+    }),
+  categoryId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"categoryId" must contain numbers',
+        'number.integer': '"categoryId" must contain integers',
+        'number.positive': '"categoryId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"categoryIds" must be an array of numbers',
+    }),
+  allergenId: Joi.array().items(
+    Joi.number().integer().positive()
+      .messages({
+        'number.base': '"allergenId" must contain numbers',
+        'number.integer': '"allergenId" must contain integers',
+        'number.positive': '"allergenId" must contain positive numbers',
+      })
+  ).optional()
+    .messages({
+      'array.base': '"allergenIds" must be an array of numbers',
+    }),
+})
+  .custom((value, helpers) => {
+    // If both originalPrice and salePrice are provided, ensure salePrice <= originalPrice
+    if (value.salePrice !== undefined && value.originalPrice !== undefined) {
+      if (value.salePrice > value.originalPrice) {
+        return helpers.error('any.custom', { message: '"salePrice" cannot be greater than "originalPrice"' });
+      }
+    }
+    // If only salePrice is provided, ensure it's non-negative (already handled)
+    return value;
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 const updateStoreSchema = Joi.object({
-    storeName: Joi.string()
-        .min(2)
-        .max(50)
-        .optional()
-        .messages({
-            'string.base': `"storeName" should be a type of 'text'`,
-            'string.empty': `"storeName" cannot be an empty field`,
-            'string.min': `"storeName" should have a minimum length of {#limit}`,
-            'string.max': `"storeName" should have a maximum length of {#limit}`,
-        }),
+  storeName: Joi.string()
+    .min(2)
+    .max(50)
+    .optional()
+    .messages({
+      'string.base': `"storeName" should be a type of 'text'`,
+      'string.empty': `"storeName" cannot be an empty field`,
+      'string.min': `"storeName" should have a minimum length of {#limit}`,
+      'string.max': `"storeName" should have a maximum length of {#limit}`,
+    }),
 
-    storeAddress: Joi.string()
-        .min(2)
-        .max(100)
-        .optional()
-        .messages({
-            'string.base': `"storeAddress" should be a type of 'text'`,
-            'string.empty': `"storeAddress" cannot be an empty field`,
-            'string.min': `"storeAddress" should have a minimum length of {#limit}`,
-            'string.max': `"storeAddress" should have a maximum length of {#limit}`,
-        }),
+  storeAddress: Joi.string()
+    .min(2)
+    .max(100)
+    .optional()
+    .messages({
+      'string.base': `"storeAddress" should be a type of 'text'`,
+      'string.empty': `"storeAddress" cannot be an empty field`,
+      'string.min': `"storeAddress" should have a minimum length of {#limit}`,
+      'string.max': `"storeAddress" should have a maximum length of {#limit}`,
+    }),
 
-    storeDetails: Joi.string()
-        .min(2)
-        .max(100)
-        .optional()
-        .messages({
-            'string.base': `"storeDetails" should be a type of 'text'`,
-            'string.min': `"storeDetails" should have a minimum length of {#limit}`,
-            'string.max': `"storeDetails" should have a maximum length of {#limit}`,
-        }),
+  storeDetails: Joi.string()
+    .min(2)
+    .max(100)
+    .optional()
+    .messages({
+      'string.base': `"storeDetails" should be a type of 'text'`,
+      'string.min': `"storeDetails" should have a minimum length of {#limit}`,
+      'string.max': `"storeDetails" should have a maximum length of {#limit}`,
+    }),
 
-    profilePicture: Joi.string()
-        .uri()
-        .optional()
-        .messages({
-            'string.uri': `"profilePicture" must be a valid URI`,
-        }),
+  profilePicture: Joi.string()
+    .uri()
+    .optional()
+    .messages({
+      'string.uri': `"profilePicture" must be a valid URI`,
+    }),
 
-    phoneNumber: Joi.string()
-        .pattern(phoneRegex)
-        .optional()
-        .messages({
-            'string.pattern.base': `"phoneNumber" must be a valid phone number`,
-        }),
+  phoneNumber: Joi.string()
+    .pattern(phoneRegex)
+    .optional()
+    .messages({
+      'string.pattern.base': `"phoneNumber" must be a valid phone number`,
+    }),
 
-    timeOpen: Joi.string()
-        .pattern(timeRegex)
-        .optional()
-        .messages({
-            'string.base': `"timeOpen" should be a valid time in HH:mm format`,
-            'string.pattern.base': `"timeOpen" should follow the HH:mm format`,
-        }),
+  timeOpen: Joi.string()
+    .pattern(timeRegex)
+    .optional()
+    .messages({
+      'string.base': `"timeOpen" should be a valid time in HH:mm format`,
+      'string.pattern.base': `"timeOpen" should follow the HH:mm format`,
+    }),
 
-    timeClose: Joi.string()
-        .pattern(timeRegex)
-        .optional()
-        .messages({
-            'string.base': `"timeClose" should be a valid time in HH:mm format`,
-            'string.pattern.base': `"timeClose" should follow the HH:mm format`,
-        }),
+  timeClose: Joi.string()
+    .pattern(timeRegex)
+    .optional()
+    .messages({
+      'string.base': `"timeClose" should be a valid time in HH:mm format`,
+      'string.pattern.base': `"timeClose" should follow the HH:mm format`,
+    }),
 
-    latitude: Joi.number()
-        .min(-90)
-        .max(90)
-        .optional()
-        .messages({
-            'number.base': `"latitude" should be a valid number`,
-            'number.min': `"latitude" should not be less than -90`,
-            'number.max': `"latitude" should not be more than 90`,
-        }),
+  latitude: Joi.number()
+    .min(-90)
+    .max(90)
+    .optional()
+    .messages({
+      'number.base': `"latitude" should be a valid number`,
+      'number.min': `"latitude" should not be less than -90`,
+      'number.max': `"latitude" should not be more than 90`,
+    }),
 
-    longitude: Joi.number()
-        .min(-180)
-        .max(180)
-        .optional()
-        .messages({
-            'number.base': `"longitude" should be a valid number`,
-            'number.min': `"longitude" should not be less than -180`,
-            'number.max': `"longitude" should not be more than 180`,
-        }),
+  longitude: Joi.number()
+    .min(-180)
+    .max(180)
+    .optional()
+    .messages({
+      'number.base': `"longitude" should be a valid number`,
+      'number.min': `"longitude" should not be less than -180`,
+      'number.max': `"longitude" should not be more than 180`,
+    }),
 }).custom((obj, helpers) => {
-    // Custom validation to check if timeOpen < timeClose if both are provided
-    if (obj.timeOpen && obj.timeClose) {
-        const [openHour, openMinute] = obj.timeOpen.split(':').map(Number);
-        const [closeHour, closeMinute] = obj.timeClose.split(':').map(Number);
-        
-        if (openHour > closeHour || (openHour === closeHour && openMinute >= closeMinute)) {
-            return helpers.message(`"timeClose" should be after "timeOpen"`);
-        }
+  // Custom validation to check if timeOpen < timeClose if both are provided
+  if (obj.timeOpen && obj.timeClose) {
+    const [openHour, openMinute] = obj.timeOpen.split(':').map(Number);
+    const [closeHour, closeMinute] = obj.timeClose.split(':').map(Number);
+
+    if (openHour > closeHour || (openHour === closeHour && openMinute >= closeMinute)) {
+      return helpers.message(`"timeClose" should be after "timeOpen"`);
     }
-    return obj;
+  }
+  return obj;
 })
+
+
 
 //foundation
 // Schema for creating a new Foundation
@@ -621,10 +876,58 @@ const updateFoundationSchema = Joi.object({
       'string.uri': `"profilePicture" must be a valid URI`,
     }),
 })
-  .min(1)
-  .messages({
-    'object.min': 'At least one field must be updated',
-  });
+const allowedSortByFieldsFoundation = ['id', 'name', 'contactInfo', 'address'];
+
+// Create schema for searching Foundation
+module.exports.searchFoundationSchema = Joi.object({
+  id: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"id" must be a number',
+      'number.integer': '"id" must be an integer',
+      'number.positive': '"id" must be a positive number',
+    }),
+  name: Joi.string().max(100)
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.max': '"name" must be at most 100 characters long',
+    }),
+  contactInfo: Joi.string().max(100).optional()
+    .messages({
+      'string.base': '"contactInfo" must be a string',
+      'string.empty': '"contactInfo" cannot be empty',
+      'string.max': '"contactInfo" must be at most 100 characters long',
+    }),
+  address: Joi.string().max(200)
+    .messages({
+      'string.base': '"address" must be a string',
+      'string.empty': '"address" cannot be empty',
+      'string.max': '"address" must be at most 100 characters long',
+    }),
+  sortBy: Joi.string().valid(...allowedSortByFieldsFoundation).optional()
+    .messages({
+      'string.base': '"sortBy" must be a string',
+      'any.only': `"sortBy" must be one of [${allowedSortByFieldsFoundation.join(', ')}]`,
+    }),
+  sortOrder: Joi.string().valid('asc', 'desc').optional()
+    .messages({
+      'string.base': '"sortOrder" must be a string',
+      'any.only': '"sortOrder" must be "asc" or "desc"',
+    }),
+  page: Joi.number().integer().min(1).default(1)
+    .messages({
+      'number.base': '"page" must be a number',
+      'number.integer': '"page" must be an integer',
+      'number.min': '"page" must be at least 1',
+    }),
+  limit: Joi.number().integer().min(1).max(200)
+    .messages({
+      'number.base': '"limit" must be a number',
+      'number.integer': '"limit" must be an integer',
+      'number.min': '"limit" must be at least 1',
+      'number.max': '"limit" must be at most 200',
+    }),
+})
 
 
 
@@ -798,16 +1101,6 @@ const productDonationItemSchema = Joi.object({
 
 // Define the main schema for Donation creation
 const createDonationSchema = Joi.object({
-  sellerId: Joi.number()
-    .integer()
-    .positive()
-    .required()
-    .messages({
-      'number.base': `"sellerId" must be a number`,
-      'number.integer': `"sellerId" must be an integer`,
-      'number.positive': `"sellerId" must be a positive number`,
-      'any.required': `"sellerId" is a required field`,
-    }),
 
   foundationId: Joi.number()
     .integer()
@@ -884,16 +1177,105 @@ const updateDonationSchema = Joi.object({
     'object.min': 'At least one field must be provided for update',
   });
 
+// Define fields allowed for sorting
+const allowedSortByFieldsDonation = ['id', 'sellerId', 'foundationId', 'isVerify', 'totalPrice', 'donatedAt'];
+// Create schema for searching Donation
+module.exports.searchDonationSchema = Joi.object({
+  id: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"id" must be a number',
+      'number.integer': '"id" must be an integer',
+      'number.positive': '"id" must be a positive number',
+    }),
+  sellerId: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"sellerId" must be a number',
+      'number.integer': '"sellerId" must be an integer',
+      'number.positive': '"sellerId" must be a positive number',
+    }),
+  foundationId: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"foundationId" must be a number',
+      'number.integer': '"foundationId" must be an integer',
+      'number.positive': '"foundationId" must be a positive number',
+    }),
+  isVerify: Joi.boolean()
+    .truthy('true')
+    .falsy('false')
+    .optional()
+    .messages({
+      'boolean.base': '"isVerify" must be a boolean (true or false)',
+      'any.only': '"isVerify" must be either "true" or "false"',
+    }),
+  minTotalPrice: Joi.number().positive()
+    .messages({
+      'number.base': '"minTotalPrice" must be a number',
+      'number.positive': '"minTotalPrice" must be a positive number',
+    }),
+  maxTotalPrice: Joi.number().positive()
+    .messages({
+      'number.base': '"maxTotalPrice" must be a number',
+      'number.positive': '"maxTotalPrice" must be a positive number',
+    }),
+  startDate: Joi.date()
+    .iso()
+    .messages({
+      'date.base': '"startDate" must be a valid date',
+      'date.format': '"startDate" must be in ISO format (YYYY-MM-DD)',
+    }),
+  endDate: Joi.date()
+    .iso()
+    .messages({
+      'date.base': '"endDate" must be a valid date',
+      'date.format': '"endDate" must be in ISO format (YYYY-MM-DD)',
+    }),
+  sortBy: Joi.string().valid(...allowedSortByFieldsDonation).optional()
+    .messages({
+      'string.base': '"sortBy" must be a string',
+      'any.only': `"sortBy" must be one of [${allowedSortByFieldsDonation.join(', ')}]`,
+    }),
+  sortOrder: Joi.string().valid('asc', 'desc').optional()
+    .messages({
+      'string.base': '"sortOrder" must be a string',
+      'any.only': '"sortOrder" must be "asc" or "desc"',
+    }),
+  page: Joi.number().integer().min(1)
+    .messages({
+      'number.base': '"page" must be a number',
+      'number.integer': '"page" must be an integer',
+      'number.min': '"page" must be at least 1',
+    }),
+  limit: Joi.number().integer().min(1).max(200)
+    .messages({
+      'number.base': '"limit" must be a number',
+      'number.integer': '"limit" must be an integer',
+      'number.min': '"limit" must be at least 1',
+      'number.max': '"limit" must be at most 200',
+    }),
+})
+  .with('minTotalPrice', 'maxTotalPrice') // If minTotalPrice is provided, maxTotalPrice should also be considered
+  .with('startDate', 'endDate') // If startDate is provided, endDate should also be considered
+  .custom((value, helpers) => {
+    // Ensure that minTotalPrice <= maxTotalPrice
+    if (value.minTotalPrice && value.maxTotalPrice && value.minTotalPrice > value.maxTotalPrice) {
+      return helpers.message('"minTotalPrice" cannot be greater than "maxTotalPrice"');
+    }
+    // Ensure that startDate <= endDate
+    if (value.startDate && value.endDate && new Date(value.startDate) > new Date(value.endDate)) {
+      return helpers.message('"startDate" cannot be later than "endDate"');
+    }
+
+    return value;
+  });
+
+
+
+
+
+
 //Cart item
 // Schema for creating a new CartItem
 const createCartItemSchema = Joi.object({
-  userId: Joi.number().integer().positive().required()
-    .messages({
-      'number.base': '"userId" must be a number',
-      'number.integer': '"userId" must be an integer',
-      'number.positive': '"userId" must be a positive number',
-      'any.required': '"userId" is a required field'
-    }),
   productId: Joi.number().integer().positive().required()
     .messages({
       'number.base': '"productId" must be a number',
@@ -914,13 +1296,363 @@ const createCartItemSchema = Joi.object({
 const updateCartItemSchema = Joi.object({
 
   quantity: Joi.number().integer().min(1)
-      .messages({
+    .messages({
+      'number.base': '"quantity" must be a number',
+      'number.integer': '"quantity" must be an integer',
+      'number.min': '"quantity" must be at least 1',
+    }),
+});
+
+// Define fields allowed for sorting
+const allowedSortByFieldsCartItem = ['id', 'userId', 'productId', 'quantity'];
+
+// Create schema for searching CartItem
+module.exports.searchCartItemSchema = Joi.object({
+  id: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"id" must be a number',
+      'number.integer': '"id" must be an integer',
+      'number.positive': '"id" must be a positive number',
+    }),
+  userId: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"userId" must be a number',
+      'number.integer': '"userId" must be an integer',
+      'number.positive': '"userId" must be a positive number',
+    }),
+  productId: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"productId" must be a number',
+      'number.integer': '"productId" must be an integer',
+      'number.positive': '"productId" must be a positive number',
+    }),
+  minQuantity: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"minQuantity" must be a number',
+      'number.integer': '"minQuantity" must be an integer',
+      'number.positive': '"minQuantity" must be a positive number',
+    }),
+  maxQuantity: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"maxQuantity" must be a number',
+      'number.integer': '"maxQuantity" must be an integer',
+      'number.positive': '"maxQuantity" must be a positive number',
+    }),
+  sortBy: Joi.string().valid(...allowedSortByFieldsCartItem).optional()
+    .messages({
+      'string.base': '"sortBy" must be a string',
+      'any.only': `"sortBy" must be one of [${allowedSortByFieldsCartItem.join(', ')}]`,
+    }),
+  sortOrder: Joi.string().valid('asc', 'desc').optional()
+    .messages({
+      'string.base': '"sortOrder" must be a string',
+      'any.only': '"sortOrder" must be "asc" or "desc"',
+    }),
+  page: Joi.number().integer().min(1)
+    .messages({
+      'number.base': '"page" must be a number',
+      'number.integer': '"page" must be an integer',
+      'number.min': '"page" must be at least 1',
+    }),
+  limit: Joi.number().integer().min(1).max(200)
+    .messages({
+      'number.base': '"limit" must be a number',
+      'number.integer': '"limit" must be an integer',
+      'number.min': '"limit" must be at least 200',
+      'number.max': '"limit" must be at most 200',
+    }),
+})
+  .custom((value, helpers) => {
+    // Ensure that minQuantity <= maxQuantity if both are provided
+    if (value.minQuantity !== undefined && value.maxQuantity !== undefined) {
+      if (value.minQuantity > value.maxQuantity) {
+        return helpers.message('"minQuantity" cannot be greater than "maxQuantity"');
+      }
+    }
+    return value;
+  });
+
+
+
+
+
+
+//Category
+// Schema for creating a new Category
+const createCategorySchema = Joi.object({
+  name: Joi.string()
+    .min(1)
+    .max(100)
+    .required()
+    .messages({
+      'string.base': '"name" should be a type of text',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" should have a minimum length of 100',
+      'string.max': '"name" should have a maximum length of 100',
+      'any.required': '"name" is a required field'
+    }),
+  description: Joi.string()
+    .max(255)
+    .optional()
+    .messages({
+      'string.base': '"description" should be a type of text',
+      'string.empty': '"description" cannot be empty',
+      'string.max': '"description" should have a maximum length of 255',
+    }),
+});
+
+// Schema for updating an existing Category
+const updateCategorySchema = Joi.object({
+
+  name: Joi.string()
+    .min(1)
+    .max(100)
+    .optional()
+    .messages({
+      'string.base': '"name" should be a type of text',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" should have a minimum length of 1',
+      'string.max': '"name" should have a maximum length of 100',
+    }),
+  description: Joi.string()
+    .min(1)
+    .max(255)
+    .messages({
+      'string.base': '"description" should be a type of text',
+      'string.empty': '"description" cannot be empty',
+      'string.min': '"description" should have a minimum length of 255',
+      'string.max': '"description" should have a maximum length of 255',
+    }),
+}).or('name', 'description') // At least one field must be present
+  .messages({
+    'object.missing': 'At least one of "name" or "description" must be provided'
+  });
+
+// for query
+const allowedSortByFields = ['id', 'name', 'description'];
+module.exports.searchCategorySchema = Joi.object({
+  id: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"id" must be a number',
+      'number.integer': '"id" must be an integer',
+      'number.positive': '"id" must be a positive number',
+    }),
+  name: Joi.string().min(1).max(100)
+    .messages({
+      'string.base': '"name" should be a type of text',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" should have a minimum length of {#limit}',
+      'string.max': '"name" should have a maximum length of {#limit}',
+    }),
+  description: Joi.string().min(1).max(255)
+    .messages({
+      'string.base': '"description" should be a type of text',
+      'string.empty': '"description" cannot be empty',
+      'string.min': '"description" should have a minimum length of {#limit}',
+      'string.max': '"description" should have a maximum length of {#limit}',
+    }),
+  sortBy: Joi.string().valid(...allowedSortByFields).optional()
+    .messages({
+      'string.base': '"sortBy" should be a type of text',
+      'any.only': `"sortBy" must be one of [${allowedSortByFields.join(', ')}]`,
+    }),
+  sortOrder: Joi.string().valid('asc', 'desc').optional()
+    .messages({
+      'string.base': '"sortOrder" should be a type of text',
+      'any.only': '"sortOrder" must be either "asc" or "desc"',
+    }),
+  page: Joi.number().integer().min(1)
+    .messages({
+      'number.base': '"page" must be a number',
+      'number.integer': '"page" must be an integer',
+      'number.min': '"page" must be at least 1',
+    }),
+  limit: Joi.number().integer().min(1).max(100)
+    .messages({
+      'number.base': '"limit" must be a number',
+      'number.integer': '"limit" must be an integer',
+      'number.min': '"limit" must be at least 1',
+      'number.max': '"limit" must be less than or equal to 100',
+    }),
+})
+
+
+
+//for allergen
+// Define the validation schema for creating a new Allergen
+const createAllergenSchema = Joi.object({
+  name: Joi.string()
+    .min(1)
+    .max(100)
+    .required()
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" must be at least 1 characters long',
+      'string.max': '"name" must be at most 100 characters long',
+      'any.required': '"name" is a required field',
+    }),
+  description: Joi.string()
+    .min(0)
+    .max(500)
+    .optional()
+    .messages({
+      'string.base': '"description" must be a string',
+      'string.max': '"description" must be at most 500 characters long',
+    }),
+});
+
+// Define the validation schema for updating an existing Allergen
+const updateAllergenSchema = Joi.object({
+  name: Joi.string()
+    .min(1)
+    .max(100)
+    .optional()
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" must be at least 1 characters long',
+      'string.max': '"name" must be at most 100 characters long',
+    }),
+  description: Joi.string()
+    .min(0)
+    .max(500)
+    .optional()
+    .messages({
+      'string.base': '"description" must be a string',
+      'string.max': '"description" must be at most 500 characters long',
+    }),
+}).or('name', 'description') // Ensure at least one field is being updated
+  .messages({
+    'object.missing': 'At least one of "name" or "description" must be provided for update',
+  });
+
+// Define fields allowed for sorting
+const allowedSortByFieldsAllergen = ['name', 'description'];
+
+// Create schema for searching Allergens
+module.exports.searchAllergenSchema = Joi.object({
+  id: Joi.number().integer().positive()
+    .messages({
+      'number.base': '"id" must be a number',
+      'number.integer': '"id" must be an integer',
+      'number.positive': '"id" must be a positive number',
+    }),
+  name: Joi.string().min(1).max(100).optional()
+    .messages({
+      'string.base': '"name" must be a string',
+      'string.empty': '"name" cannot be empty',
+      'string.min': '"name" must be at least {#limit} characters long',
+      'string.max': '"name" must be at most {#limit} characters long',
+    }),
+  description: Joi.string().min(5).max(500).optional()
+    .messages({
+      'string.base': '"description" must be a string',
+      'string.empty': '"description" cannot be empty',
+      'string.min': '"description" must be at least {#limit} characters long',
+      'string.max': '"description" must be at most {#limit} characters long',
+    }),
+  sortBy: Joi.string().valid(...allowedSortByFieldsAllergen).optional()
+    .messages({
+      'string.base': '"sortBy" must be a string',
+      'any.only': `"sortBy" must be one of [${allowedSortByFieldsAllergen.join(', ')}]`,
+    }),
+  sortOrder: Joi.string().valid('asc', 'desc').optional()
+    .messages({
+      'string.base': '"sortOrder" must be a string',
+      'any.only': '"sortOrder" must be "asc" or "desc"',
+    }),
+  page: Joi.number().integer().min(1).default(1)
+    .messages({
+      'number.base': '"page" must be a number',
+      'number.integer': '"page" must be an integer',
+      'number.min': '"page" must be at least {#limit}',
+    }),
+  limit: Joi.number().integer().min(1).max(100).default(10)
+    .messages({
+      'number.base': '"limit" must be a number',
+      'number.integer': '"limit" must be an integer',
+      'number.min': '"limit" must be at least 1',
+      'number.max': '"limit" must be at most 100',
+    }),
+})
+  .custom((value, helpers) => {
+    // If sortBy is provided, ensure sortOrder is also provided, else default to 'asc'
+    if (value.sortBy && !value.sortOrder) {
+      value.sortOrder = 'asc';
+    }
+    return value;
+  });
+
+
+
+
+//order 
+
+// Define fields allowed for sorting
+const allowedSortByFieldsPaymentStatus = ['PENDING', 'COMPLETED', 'FAILED'];
+const allowedSortByFieldsPaymentMethod = ['PROMPTPAY', 'CREDIT_CARD'];
+
+// Schema for creating a new Order
+const createOrderSchema = Joi.object({
+  paymentMethod: Joi.string().valid(...allowedSortByFieldsPaymentMethod).required()
+    .messages({
+      'string.base': '"paymentMethod" must be a string',
+      'any.only': `"paymentMethod" must be one of [${allowedSortByFieldsPaymentMethod.join(', ')}]`,
+      'any.required': '"paymentMethod" is a required field',
+    }),
+  orderItems: Joi.array().items(
+    Joi.object({
+      productId: Joi.number().integer().positive().required()
+        .messages({
+          'number.base': '"productId" must be a number',
+          'number.integer': '"productId" must be an integer',
+          'number.positive': '"productId" must be a positive number',
+          'any.required': '"productId" is a required field',
+        }),
+      quantity: Joi.number().integer().min(1).required()
+        .messages({
           'number.base': '"quantity" must be a number',
           'number.integer': '"quantity" must be an integer',
           'number.min': '"quantity" must be at least 1',
-      }),
+          'any.required': '"quantity" is a required field',
+        }),
+      unitPrice: Joi.number().precision(2).min(0).required()
+        .messages({
+          'number.base': '"unitPrice" must be a number',
+          'number.precision': '"unitPrice" must have at most 2 decimal places',
+          'number.min': '"unitPrice" must be at least 0',
+          'any.required': '"unitPrice" is a required field',
+        }),
+    })
+  ).min(1).required()
+    .messages({
+      'array.base': '"orderItems" must be an array',
+      'array.min': '"orderItems" must contain at least 1 items',
+      'any.required': '"orderItems" is a required field',
+    }),
 });
 
+// Schema for updating an existing Order
+const updateOrderSchema = Joi.object({
+  paymentStatus: Joi.string().valid(...allowedSortByFieldsPaymentStatus).optional()
+    .messages({
+      'string.base': '"paymentStatus" must be a string',
+      'any.only': `"paymentStatus" must be one of [${allowedSortByFieldsPaymentStatus.join(', ')}]`,
+    }),
+  paymentMethod: Joi.string().valid(...allowedSortByFieldsPaymentMethod).optional()
+    .messages({
+      'string.base': '"paymentMethod" must be a string',
+      'any.only': `"paymentMethod" must be one of [${allowedSortByFieldsPaymentMethod.join(', ')}]`,
+    }),
+  isPickUpped: Joi.boolean().optional()
+    .messages({
+      'boolean.base': '"isPickUpped" must be a boolean',
+    }),
+}).or('paymentStatus', 'paymentMethod', 'isPickUpped') // Ensure at least one field is being updated
+  .messages({
+    'object.missing': 'At least one of "paymentStatus", "paymentMethod", or "isPickUpped" must be provided for update',
+  });
 
 
 const validateSchema = (schema) => (req, res, next) => {
@@ -949,5 +1681,13 @@ module.exports.createCartItemValidator = validateSchema(createCartItemSchema)
 module.exports.updateCartItemValidator = validateSchema(updateCartItemSchema)
 module.exports.createProductValidator = validateSchema(createProductSchema)
 module.exports.updateProductValidator = validateSchema(updateProductSchema)
+module.exports.createCategoryValidator = validateSchema(createCategorySchema)
+module.exports.updateCategoryValidator = validateSchema(updateCategorySchema)
+module.exports.createAllergenValidator = validateSchema(createAllergenSchema)
+module.exports.updateAllergenValidator = validateSchema(updateAllergenSchema)
+module.exports.createOrderValidator = validateSchema(createOrderSchema)
+module.exports.updateOrderValidator = validateSchema(updateOrderSchema)
+module.exports.createProductValidatorAll = validateSchema(createProductSchemaAll)
+module.exports.updateProductValidatorAll = validateSchema(updateProductSchemaAll)
 
 

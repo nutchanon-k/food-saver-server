@@ -7,7 +7,10 @@ const getPublicId = require('../utils/getPublicId');
 const { getFoundationByIdService } = require("../services/foundationService");
 const { product, message } = require("../configs/prisma");
 const { createNewProductDonationService, createNewDonationService, getDonationsService, deleteDonationService, updateVerifyDonationService } = require("../services/donationService");
-const { getUserById } = require("../services/userService");
+const { getUserById, getUserByQueryService, getUserByRoleService } = require("../services/userService");
+const { searchDonationSchema } = require("../middlewares/validator");
+const { getProductService, updateProductService } = require("../services/productService");
+const { createNotification } = require("../services/notificationService");
 
 
 // model Donation {
@@ -39,7 +42,8 @@ const { getUserById } = require("../services/userService");
 
 module.exports.createDonation = async (req, res, next) => {
     try {
-        const { sellerId, foundationId, totalPrice, productDonation } = req.body
+        const  sellerId = req.user.id
+        const { foundationId, totalPrice, productDonation } = req.body
 
         const isSellerExist = await getUserById(Number(sellerId))
         if (!isSellerExist) {
@@ -51,6 +55,36 @@ module.exports.createDonation = async (req, res, next) => {
             return createError(404, `Foundation with id ${foundationId} not found`)
         }
 
+        // const checkProductExist = productDonation.map(async (item) => {
+        //     try {
+        //         const product = await getProductService(Number(item.productId));
+        //         console.log(product)
+        //         if (!product || product === null) {
+        //             return createError(404, 'Product not found');
+        //         }
+        //     } catch (err) {
+        //         next(err);
+        //     }
+        // })
+        for (const item of productDonation) {
+            try {
+                const product = await getProductService(Number(item.productId));
+                
+                if (!product) {                    
+                    return next(createError(400, `Product with ID ${item.productId} not found`));
+                }
+                
+                if (Number(product.quantity) < Number(item.quantity)) {
+                    return next(createError(400, `Insufficient quantity for product ID ${item.productId}`));
+                }
+
+                // หักสินค้าจาก stock
+                await updateProductService(product.id, { quantity: product.quantity - item.quantity });
+                
+            } catch (err) {
+                return next(err);
+            }
+        }
 
         const haveFile = !!req.file
         let uploadResult = {}
@@ -67,18 +101,37 @@ module.exports.createDonation = async (req, res, next) => {
             foundationId: Number(foundationId),
             imageUrl: uploadResult.secure_url || "",
             totalPrice: Number(totalPrice),
+            productDonation: productDonation
         }
 
+
         const newDonation = await createNewDonationService(data)
+
+
+        if (newDonation) {
+            // ดึง Sellers ที่เกี่ยวข้องกับ OrderItems
+            const admin = await getUserByRoleService('ADMIN')
+            console.log("admin", admin)
+
+            // สร้าง Notification สำหรับแต่ละ Seller
+            const notifications = await Promise.all(admin.map(admin => {
+                return createNotification(admin.id, 'Donation Created', `Donation Id #${newDonation.id} has been created please check.`);
+            }));
+        }
+
+
+
+
+
         // console.log(productDonation)
-        const dataProductDonation = productDonation.map((productDonation) => ({
-            productId: Number(productDonation.productId),
-            quantity: Number(productDonation.quantity),
-            donationId: Number(newDonation.id)
-        }))
+        // const dataProductDonation = productDonation.map((productDonation) => ({
+        //     productId: Number(productDonation.productId),
+        //     quantity: Number(productDonation.quantity),
+        //     donationId: Number(newDonation.id)
+        // }))
         // console.log(dataProductDonation)
 
-        const newProductDonation = await createNewProductDonationService(dataProductDonation)
+        // const newProductDonation = await createNewProductDonationService(dataProductDonation)
     
         res.status(201).json({
             message: "Donation created successfully",
@@ -93,6 +146,10 @@ module.exports.createDonation = async (req, res, next) => {
 
 module.exports.getDonations = async (req, res, next) => {
     try {
+        const { error, value } = searchDonationSchema.validate(req.query, { abortEarly: false });
+        if (error) {
+            return next(createError(400, error.details.map(detail => detail.message).join(', ')));
+        }
         // const {id, sellerId, foundationId, isVerify} = req.query
         const { id, sellerId, foundationId, isVerify, minTotalPrice, maxTotalPrice, startDate, endDate, sortBy, sortOrder, page, limit } = req.query;
         // กำหนดเงื่อนไขการค้นหา
@@ -166,7 +223,8 @@ module.exports.getDonations = async (req, res, next) => {
                         email: true,
                     }
                 },        
-                foundation: true,    
+                foundation: true,
+                productDonations: true    
             },
         }
 
@@ -194,7 +252,43 @@ module.exports.updateVerifyDonation = async (req, res, next) => {
             return createError(400, "isVerify is required")
         }
 
-        const updatedDonation = await updateVerifyDonationService(Number(id), isVerify)
+        if (isVerify !== true && isVerify !== false) {
+            return createError(400, "isVerify must be true or false")
+        }
+
+        let upDateVerify = false
+        if (isVerify === "true" || isVerify === true) {
+            upDateVerify = true
+        } else if (isVerify === "false" || isVerify === false) {
+            upDateVerify = false
+        }
+        
+
+        const updatedDonation = await updateVerifyDonationService(Number(id), upDateVerify)
+        // console.log("testxxxxxxxxxxxx",updatedDonation.isVerify)
+        // console.log("isDonationExist",isDonationExist[0].isVerify)
+        const isVerifyComplete = updatedDonation.isVerify === true && isDonationExist[0].isVerify === false
+
+        if (isVerifyComplete) {
+            // const transporter = nodemailer.createTransport({
+            //     service: 'gmail',
+            //     auth: {
+            //         user: process.env.MAILER_EMAIL,
+            //         pass: process.env.MAILER_PASSWORD
+            //     }
+            // })
+
+            // const mailOptions = {
+            //     from: process.env.MAILER_EMAIL,
+            //     to: updatedDonation.seller.email,
+            //     subject: 'Donation Verified',
+            //     text: 'Your donation has been verified. Thank you!'
+            // }
+
+            const notifications = await createNotification(updatedDonation.sellerId, 'Donation Verified', `Donation Id #${updatedDonation.id} has been verified.`);
+            // console.log("test55555",notifications)
+        }
+
         res.json({
             message: "Donation verified successfully",
             updatedDonation,

@@ -3,6 +3,7 @@ const createError = require('../utils/createError')
 const { getUserById } = require("../services/userService");
 const { createCartItemService, updateQuantityService, getCartItemForCheckService, getCartItemsService, deleteCartItemService } = require("../services/cartItemService");
 const { getProductService } = require("../services/productService");
+const { searchCartItemSchema } = require("../middlewares/validator");
 
 
 
@@ -20,30 +21,32 @@ const { getProductService } = require("../services/productService");
 module.exports.addToCart = async (req, res, next) => {
     try {
         const buyerId = req.user.id
-        const { userId, productId, quantity } = req.body
+        const { productId, quantity } = req.body
 
-        if (Number(buyerId) !== Number(userId)) {
-            createError(401, 'Unauthorized')
-        }
-
-        const user = await getUserById(Number(buyerId))
-        if (!user) {
-            createError(400, 'User not found')
-        }
 
         const product = await getProductService(productId)
         if (!product) {
             createError(400, 'Product not found')
         }
-
-        const checkProductInCart = await getCartItemForCheckService({ where: { productId: Number(productId), userId: Number(userId) } })
-        // console.log(checkProductInCart)
+        
+        // check if product already in cart
+        const checkProductInCart = await getCartItemForCheckService({ where: { productId: Number(productId), userId: Number(buyerId) } })
+        
         if (checkProductInCart) {
+            //check quantity
+            if(Number(checkProductInCart.quantity) + Number(quantity) > Number(product.quantity)) {
+                console.log("Quantity must be less than ", Number(product.quantity) - Number(checkProductInCart.quantity))
+                createError(400, `Quantity must be less than ${Number(product.quantity) - Number(checkProductInCart.quantity)}`)
+            }
             const updateQuantity = await updateQuantityService(Number(checkProductInCart.id), { quantity: Number(checkProductInCart.quantity) + Number(quantity) })
             res.status(200).json({ "message": "Update quantity success", "data": updateQuantity })
             return
         }
-
+        
+        if (Number(product.quantity) < Number(quantity)) {
+            createError(400, `Quantity must be less than ${product.quantity}`)
+        }
+        
         const data = {
             userId: Number(buyerId),
             productId: Number(productId),
@@ -65,7 +68,11 @@ module.exports.addToCart = async (req, res, next) => {
 
 module.exports.getCartItems = async (req, res, next) => {
     try {
-        const { id, userId, productId, quantity, sortBy, sortOrder, page, limit } = req.query;
+        const { error, value } = searchCartItemSchema.validate(req.query, { abortEarly: false });
+        if (error) {
+            return next(createError(400, error.details.map(detail => detail.message).join(', ')));
+        }
+        const { id, userId, productId, minQuantity, maxQuantity, sortBy, sortOrder, page, limit } = req.query;
         const where = {};
 
         if (id !== undefined) {
@@ -80,17 +87,16 @@ module.exports.getCartItems = async (req, res, next) => {
             where.productId = Number(productId);
         }
 
-        if (quantity !== undefined) {
-            // Handle advanced quantity filtering
-            const quantityFilter = {};
-            if (quantity.gt !== undefined) quantityFilter.gt = +quantity.gt;
-            if (quantity.gte !== undefined) quantityFilter.gte = +quantity.gte;
-            if (quantity.lt !== undefined) quantityFilter.lt = +quantity.lt;
-            if (quantity.lte !== undefined) quantityFilter.lte = +quantity.lte;
-    
-            where.quantity = quantityFilter;
+        if (minQuantity || maxQuantity) {
+            where.quantity = {};
+            if (minQuantity) {
+                where.quantity.gte = parseFloat(minQuantity);
+            }
+            if (maxQuantity) {
+                where.quantity.lte = parseFloat(maxQuantity);
+            }
         }
-        //GET http://localhost:8000/cart-items?userId=1&quantity[gte]=2&quantity[lte]=5&page=1&limit=5
+        //GET http://localhost:8000/cart-items?userId=2&minQuantity=2&maxQuantity=60&page=1&limit=5
 
         // กำหนดการเรียงลำดับ
         const orderBy = {};
@@ -149,6 +155,15 @@ module.exports.updateCartItem = async (req, res, next) => {
         if (Number(userId) !== Number(cartItem.userId)) {
             createError(400, 'Not owned user can not update cart item')
         }
+        const product = await getProductService(cartItem.productId)
+        if (!product) {
+            createError(400, 'Product not found')
+        }
+        if (Number(product.quantity) < Number(quantity)) {
+            createError(400, `Quantity must be less than ${product.quantity}`)
+        }
+
+
         const updateQuantity = await updateQuantityService(Number(id), {quantity: Number(quantity)})
 
         res.status(200).json({ "message": `Update quantity for cart item ${id} success`, "data": updateQuantity })

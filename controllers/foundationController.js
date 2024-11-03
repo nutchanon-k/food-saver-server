@@ -145,7 +145,7 @@ module.exports.deleteFoundation = async (req, res, next) => {
   };
 
 module.exports.getFoundation = async (req, res, next) => {
-  console.log("test")
+  console.log("test") /donation
     try {
       const {id, name, contactInfo, address, sortBy, sortOrder, page, limit } = req.query;
       const where = {};

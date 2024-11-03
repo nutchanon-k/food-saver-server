@@ -7,6 +7,7 @@ const fs = require('fs/promises')
 const cloudinary = require('../configs/cloudinary')
 const getPublicId = require('../utils/getPublicId')
 const { getUserById, deleteUserService, getUserByQueryService, updateUserService } = require("../services/userService");
+const { searchUserSchema } = require("../middlewares/validator");
 
 
 
@@ -23,20 +24,17 @@ module.exports.currentUser = async (req, res, next) => {
 module.exports.updateUser = async (req, res, next) => {
     try {
         const id = req.user.id
-        const {
-            firstName,
-            lastName,
-            email,
-            password,
-            role,
-            address,
-            phoneNumber,
-            isActive,
-        } = req.body;
+        const userRole = req.user.role
+        const {firstName,lastName,email,password,role, address,phoneNumber,isActive,} = req.body;
 
         const user = await getUserById(Number(id))
         if (!user) {
             return createError(400, "User not found")
+        }
+        if (role !== "ADMIN"){
+            if (id !== user.id) {
+                return createError(403, "Forbidden")
+            }
         }
 
         const fieldsToUpdate = {
@@ -112,6 +110,11 @@ module.exports.deleteUser = async (req, res, next) => {
 }
 module.exports.getUser = async (req, res, next) => {
     try {
+        const { error, value } = searchUserSchema.validate(req.query, { abortEarly: false });
+        if (error) {
+            return next(createError(400, error.details.map(detail => detail.message).join(', ')));
+        }
+
         const { id, firstName, lastName, email, role, phoneNumber, isActive, sortBy, sortOrder, page, limit } = req.query
         const where = {};
 
@@ -150,7 +153,11 @@ module.exports.getUser = async (req, res, next) => {
         }
 
         if (isActive !== undefined) {
-            where.isActive = isActive;
+            if (isActive.toLowerCase() === 'true') {
+                where.isActive = true;
+            } else if (isActive.toLowerCase() === 'false') {
+                where.isActive = false;
+            }
         }
 
         // กำหนดการเรียงลำดับ
