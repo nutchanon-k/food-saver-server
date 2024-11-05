@@ -5,7 +5,7 @@ const userRoute = express.Router();
 const {getUserById,updateUserProfile} = require("../services/userService")
 const {updateUserValidator} = require("../middlewares/validator");
 const upload = require("../middlewares/upload");
-const { currentUser, updateUser, deleteUser, getUserByQuery } = require("../controllers/userController");
+const { currentUser, updateUser, deleteUser, getUser } = require("../controllers/userController");
 
 
 userRoute.get("/me",authenticate,currentUser)
@@ -14,9 +14,7 @@ userRoute.patch("/me",authenticate,upload.single('profilePicture'),updateUserVal
 
 userRoute.delete("/:id",authenticate, deleteUser)
 
-
-// get user by query
-userRoute.get("/",authenticate,authorize(['ADMIN']),getUserByQuery)
+userRoute.get("/",authenticate,authorize(['ADMIN']),getUser)
 
 
 

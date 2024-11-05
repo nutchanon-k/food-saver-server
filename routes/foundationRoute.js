@@ -1,5 +1,5 @@
 const express = require("express");
-const { createFoundation, getAllFoundations, getFoundationById, updateFoundation, deleteFoundation } = require("../controllers/foundationController");
+const { createFoundation, getFoundationById, updateFoundation, deleteFoundation, getFoundation } = require("../controllers/foundationController");
 const { authenticate } = require("../middlewares/authenticate");
 const upload = require("../middlewares/upload");
 const authorize = require("../middlewares/roleAuthorize");
@@ -12,10 +12,10 @@ const foundationRoute = express.Router();
 foundationRoute.post('/', authenticate, authorize(["ADMIN"]),  upload.single('profilePicture'),createFoundationValidator, createFoundation);
 
 // // ดึง Foundation ทั้งหมด (Public)
-foundationRoute.get('/', getAllFoundations);
+foundationRoute.get('/', getFoundation);
 
 // // ดึง Foundation ตาม ID (Public)
-foundationRoute.get('/:id', getFoundationById);
+// foundationRoute.get('/:id', getFoundationById);
 
 // // อัปเดต Foundation ตาม ID (Admin Only)
 foundationRoute.patch('/:id', authenticate, authorize(["ADMIN"]),upload.single('profilePicture'), updateFoundationValidator,updateFoundation);

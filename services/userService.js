@@ -63,11 +63,17 @@ module.exports.deleteUserService = (userId) => {
   })
 }
 
+
 module.exports.getUserByQueryService = (query) => {
-  console.log("query from service", query)
+  // console.log("query from service", query)
+  return prisma.user.findMany(query)
+}
+
+
+module.exports.getUserByRoleService = (role) => {
   return prisma.user.findMany({
     where: {
-      ...query
+      role: role,
     },
     select: {
       id: true,
@@ -82,5 +88,5 @@ module.exports.getUserByQueryService = (query) => {
       createdAt: true,
       updatedAt: true
     }
-  })
-}
+  });
+};

@@ -20,7 +20,7 @@ model User {
   email          String   @unique
   password       String?  @map("password")
   role           Role     @default(BUYER)
-  profilePicture String?  @map("profile_picture")
+  profilePicture String?  @map("profile_picture") @db.LongText
   address        String?  @map("address")
   phoneNumber    String?  @map("phone_number")
   isActive       Boolean  @default(true) @map("is_active")
@@ -55,7 +55,7 @@ model OAuthProvider {
   createdAt      DateTime          @default(now()) @map("created_at")
 
   // Relations
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerUserId])
 }
@@ -72,7 +72,7 @@ model Store {
   storeName      String      @map("store_name")
   storeAddress   String      @map("store_address")
   storeDetails   String?     @map("store_details")
-  profilePicture String?     @map("profile_picture")
+  profilePicture String?     @map("profile_picture") @db.LongText
   status         StoreStatus @default(OPEN)
   phoneNumber    String?     @map("phone_number")
   timeOpen       String      @map("time_open")
@@ -83,7 +83,7 @@ model Store {
   updatedAt      DateTime    @updatedAt @map("updated_at")
 
   // Relations
-  user           User            @relation(fields: [userId], references: [id])
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   products       Product[]
   reviews        Review[]
   favoriteStores FavoriteStore[]
@@ -102,13 +102,13 @@ model Product {
   originalPrice  Decimal   @map("original_price") @db.Decimal(10, 2)
   salePrice      Decimal   @map("sale_price") @db.Decimal(10, 2)
   expirationDate DateTime? @map("expiration_date")
-  imageUrl       String    @map("image_url")
+  imageUrl       String    @map("image_url") @db.LongText
   quantity       Int       @default(0)
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  store             Store               @relation(fields: [storeId], references: [id])
+  store             Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   reviews           Review[]
   cartItems         CartItem[]
   orderItems        OrderItem[]
@@ -121,6 +121,7 @@ model Category {
   id          Int     @id @default(autoincrement())
   name        String  @unique
   description String? @map("description")
+  imageUrl    String? @map("image_url") @db.LongText
 
   // Relations
   productCategories ProductCategories[]
@@ -140,8 +141,8 @@ model ProductCategories {
   categoryId Int @map("category_id")
 
   // Relations
-  product  Product  @relation(fields: [productId], references: [id])
-  category Category @relation(fields: [categoryId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([productId, categoryId])
 }
@@ -151,8 +152,8 @@ model ProductAllergen {
   allergenId Int @map("allergen_id")
 
   // Relations
-  product  Product  @relation(fields: [productId], references: [id])
-  allergen Allergen @relation(fields: [allergenId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  allergen Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
 
   @@id([productId, allergenId])
 }
@@ -163,8 +164,8 @@ model ProductDonation {
   quantity   Int
 
   // Relations
-  product  Product  @relation(fields: [productId], references: [id])
-  donation Donation @relation(fields: [donationId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  donation Donation @relation(fields: [donationId], references: [id], onDelete: Cascade)
 
   @@id([productId, donationId])
 }
@@ -176,10 +177,11 @@ model Donation {
   imageUrl     String   @map("image_url")
   isVerify     Boolean  @default(false) @map("is_verify")
   donationDate DateTime @default(now()) @map("donation_date")
+  totalPrice   Decimal  @map("total_price") @db.Decimal(10, 2)
 
   // Relations
-  seller           User               @relation("SellerDonations", fields: [sellerId], references: [id])
-  foundation       Foundation         @relation(fields: [foundationId], references: [id])
+  seller           User              @relation("SellerDonations", fields: [sellerId], references: [id], onDelete: Cascade)
+  foundation       Foundation        @relation(fields: [foundationId], references: [id], onDelete: Cascade)
   productDonations ProductDonation[]
 }
 
@@ -188,7 +190,7 @@ model Foundation {
   name           String   @unique
   contactInfo    String?  @map("contact_info")
   address        String?  @map("address")
-  profilePicture String?  @map("profile_picture")
+  profilePicture String?  @map("profile_picture") @db.LongText
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -202,15 +204,15 @@ model Review {
   storeId    Int?     @map("store_id")
   productId  Int?     @map("product_id")
   rating     Int
-  reviewText String?  @map("review_text")
-  image      String?  @map("image")
+  reviewText String?  @map("review_text") @db.LongText
+  imageUrl   String?  @map("image_url") @db.LongText
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user    User     @relation(fields: [userId], references: [id])
-  store   Store?   @relation(fields: [storeId], references: [id])
-  product Product? @relation(fields: [productId], references: [id])
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store   Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Chat {
@@ -220,8 +222,8 @@ model Chat {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  buyer    User      @relation("BuyerChats", fields: [buyerId], references: [id])
-  seller   User      @relation("SellerChats", fields: [sellerId], references: [id])
+  buyer    User      @relation("BuyerChats", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller   User      @relation("SellerChats", fields: [sellerId], references: [id], onDelete: Cascade)
   messages Message[]
 }
 
@@ -233,8 +235,8 @@ model Message {
   sentAt      DateTime @default(now()) @map("sent_at")
 
   // Relations
-  chat   Chat @relation(fields: [chatId], references: [id])
-  sender User @relation(fields: [senderId], references: [id])
+  chat   Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model FavoriteStore {
@@ -243,8 +245,8 @@ model FavoriteStore {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user  User  @relation(fields: [userId], references: [id])
-  store Store @relation(fields: [storeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   @@id([userId, storeId])
 }
@@ -256,28 +258,31 @@ model CartItem {
   quantity  Int
 
   // Relations
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
 }
 
 model Order {
   id            Int           @id @default(autoincrement())
   userId        Int           @map("user_id")
   totalPrice    Decimal       @map("total_price") @db.Decimal(10, 2)
-  paymentStatus PaymentStatus @default(Pending) @map("payment_status")
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
   paymentMethod PaymentMethod @map("payment_method")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
+  isPickUpped   Boolean       @default(false) @map("is_picked_up")
 
   // Relations
-  user       User        @relation(fields: [userId], references: [id])
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
 }
 
 enum PaymentStatus {
-  Pending
-  Completed
-  Failed
+  PENDING
+  COMPLETED
+  FAILED
 }
 
 enum PaymentMethod {
@@ -290,11 +295,11 @@ model OrderItem {
   orderId   Int     @map("order_id")
   productId Int     @map("product_id")
   quantity  Int
-  price     Decimal @map("price") @db.Decimal(10, 2)
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
 
   // Relations
-  order   Order   @relation(fields: [orderId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -306,5 +311,5 @@ model Notification {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
