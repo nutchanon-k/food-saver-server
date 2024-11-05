@@ -3,7 +3,7 @@
 ## env guide
 PORT = 8000
 
-DATABASE = "mysql://u:pw@localhost:3306/food_saver"
+DATABASE_URL = "mysql://u:pw@localhost:3306/food_saver"
 
 JWT_SECRET
 
