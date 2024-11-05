@@ -989,7 +989,7 @@ const createReviewSchema = Joi.object({
       'string.max': `"reviewText" should have a maximum length of 1000 characters`,
     }),
 
-  image: Joi.string()
+  imageUrl: Joi.string()
     .uri()
     .optional()
     .messages({
@@ -1052,7 +1052,7 @@ const updateReviewSchema = Joi.object({
       'string.max': `"reviewText" should have a maximum length of {#limit} characters`,
     }),
 
-  image: Joi.string()
+  imageUrl: Joi.string()
     .uri()
     .optional()
     .messages({

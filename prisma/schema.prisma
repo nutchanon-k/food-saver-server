@@ -20,7 +20,7 @@ model User {
   email          String   @unique
   password       String?  @map("password")
   role           Role     @default(BUYER)
-  profilePicture String?  @map("profile_picture")
+  profilePicture String?  @map("profile_picture") @db.LongText
   address        String?  @map("address")
   phoneNumber    String?  @map("phone_number")
   isActive       Boolean  @default(true) @map("is_active")
@@ -72,7 +72,7 @@ model Store {
   storeName      String      @map("store_name")
   storeAddress   String      @map("store_address")
   storeDetails   String?     @map("store_details")
-  profilePicture String?     @map("profile_picture")
+  profilePicture String?     @map("profile_picture") @db.LongText
   status         StoreStatus @default(OPEN)
   phoneNumber    String?     @map("phone_number")
   timeOpen       String      @map("time_open")
@@ -102,7 +102,7 @@ model Product {
   originalPrice  Decimal   @map("original_price") @db.Decimal(10, 2)
   salePrice      Decimal   @map("sale_price") @db.Decimal(10, 2)
   expirationDate DateTime? @map("expiration_date")
-  imageUrl       String    @map("image_url")
+  imageUrl       String    @map("image_url") @db.LongText
   quantity       Int       @default(0)
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -121,7 +121,7 @@ model Category {
   id          Int     @id @default(autoincrement())
   name        String  @unique
   description String? @map("description")
-  imageUrl    String? @map("image_url")
+  imageUrl    String? @map("image_url") @db.LongText
 
   // Relations
   productCategories ProductCategories[]
@@ -190,7 +190,7 @@ model Foundation {
   name           String   @unique
   contactInfo    String?  @map("contact_info")
   address        String?  @map("address")
-  profilePicture String?  @map("profile_picture")
+  profilePicture String?  @map("profile_picture") @db.LongText
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -205,7 +205,7 @@ model Review {
   productId  Int?     @map("product_id")
   rating     Int
   reviewText String?  @map("review_text") @db.LongText
-  image      String?  @map("image")
+  imageUrl   String?  @map("image_url") @db.LongText
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
@@ -291,11 +291,11 @@ enum PaymentMethod {
 }
 
 model OrderItem {
-  id         Int     @id @default(autoincrement())
-  orderId    Int     @map("order_id")
-  productId  Int     @map("product_id")
-  quantity   Int
-  unitPrice  Decimal @map("unit_price") @db.Decimal(10, 2)
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int     @map("product_id")
+  quantity  Int
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
 
   // Relations
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
