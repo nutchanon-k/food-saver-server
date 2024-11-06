@@ -8,6 +8,7 @@ const cloudinary = require('../configs/cloudinary')
 const getPublicId = require('../utils/getPublicId')
 const { createFoundationService, getFoundationByName, getAllFoundationsService,getFoundationByIdService, updateFoundationService, deleteFoundationService, getFoundationService } = require("../services/foundationService");
 const { donation } = require("../configs/prisma");
+const prisma = require("../configs/prisma");
 
 
 // model Foundation {
@@ -147,7 +148,7 @@ module.exports.deleteFoundation = async (req, res, next) => {
 module.exports.getFoundation = async (req, res, next) => {
   console.log("test") /donation
     try {
-      const {id, name, contactInfo, address, sortBy, sortOrder, page, limit } = req.query;
+      const {id, name, contactInfo, address, sortBy, sortOrder, page, limit, search } = req.query;
       const where = {};
 
     if (id) {
@@ -188,6 +189,23 @@ module.exports.getFoundation = async (req, res, next) => {
      }
      // ถ้าไม่มีการกำหนด page และ limit จะไม่กำหนด take และ skip ซึ่งจะส่งข้อมูลทั้งหมด
 
+     id, name, contactInfo, address
+     if (search) {
+      const searchConditions = [
+          { name: { contains: search } },
+          { contactInfo: { contains: search } },
+          { address: { contains: search } },
+      ];
+
+      // searchConditions.push({ role: { equals: search } });
+
+      // หากต้องการรวม id ในการค้นหา ถ้า search เป็นตัวเลข
+      if (!isNaN(search)) {
+          searchConditions.push({ id: Number(search) });
+      }
+      where.OR = searchConditions;
+  }
+
 
      const data = {
          where,
@@ -198,14 +216,30 @@ module.exports.getFoundation = async (req, res, next) => {
            donations: true,
          }
      }
+     const dataForCount = {
+      where,
+  }
       // console.log("data",data)
 
       const foundation = await getFoundationService(data);
-      if(foundation.length === 0) {
-        return createError(404, 'Foundation not found');
-      }
 
-      res.status(200).json(foundation);
+      
+      const countFoundation = await prisma.foundation.count(dataForCount) 
+      let totalPages = 1
+      
+      if(limit) {
+           totalPages = Math.ceil(countFoundation / limit);   
+      }
+      // if(foundation.length === 0) {
+      //   return createError(404, 'Foundation not found');
+      // }
+
+      res.status(200).json({
+        message: 'Get foundation successfully',
+        foundation,
+        countFoundation,
+        totalPages,
+      });
     } catch (err) {
       next(err);
     }
