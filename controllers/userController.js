@@ -6,8 +6,9 @@ const path = require('path')
 const fs = require('fs/promises')
 const cloudinary = require('../configs/cloudinary')
 const getPublicId = require('../utils/getPublicId')
-const { getUserById, deleteUserService, getUserByQueryService, updateUserService } = require("../services/userService");
+const { getUserById, deleteUserService, getUserByQueryService, updateUserService, updateUserActivateService } = require("../services/userService");
 const { searchUserSchema } = require("../middlewares/validator");
+const prisma = require("../configs/prisma");
 
 
 
@@ -116,7 +117,7 @@ module.exports.getUser = async (req, res, next) => {
             return next(createError(400, error.details.map(detail => detail.message).join(', ')));
         }
 
-        const { id, firstName, lastName, email, role, phoneNumber, isActive, sortBy, sortOrder, page, limit } = req.query
+        const { id, firstName, lastName, email, role, phoneNumber, isActive, sortBy, sortOrder, page, limit, search } = req.query
         const where = {};
 
         if (id !== undefined) {
@@ -176,6 +177,22 @@ module.exports.getUser = async (req, res, next) => {
             skip = (+page - 1) * take;
         }
         // ถ้าไม่มีการกำหนด page และ limit จะไม่กำหนด take และ skip ซึ่งจะส่งข้อมูลทั้งหมด
+        if (search) {
+            const searchConditions = [
+                { firstName: { contains: search } },
+                { lastName: { contains: search } },
+                { email: { contains: search } },
+            ];
+
+            // searchConditions.push({ role: { equals: search } });
+
+            // หากต้องการรวม id ในการค้นหา ถ้า search เป็นตัวเลข
+            if (!isNaN(search)) {
+                searchConditions.push({ id: Number(search) });
+            }
+            where.OR = searchConditions;
+        }
+        
 
 
         const data = {
@@ -198,6 +215,10 @@ module.exports.getUser = async (req, res, next) => {
               }
         }
 
+        const dataForCount = {
+            where,
+        }
+
         // สามารถ include ได้
         // {
         //     include: {
@@ -216,16 +237,23 @@ module.exports.getUser = async (req, res, next) => {
         // };
 
         const user = await getUserByQueryService(data)
-
-        if (!user || user.length === 0) {
-            return createError(400, "User not found")
+        
+        const countUser = await prisma.user.count(dataForCount) 
+        let totalPages = 1
+        if(limit) {
+             totalPages = Math.ceil(countUser / limit);   
         }
+
+        // if (!user || user.length === 0) {
+        //     return createError(400, "User not found")
+        // }
 
         res.status(200).json({
             message: 'Get user data success',
-            data: user
+            data: user,
+            countUser,
+            totalPages
         })
-
 
 
     } catch (err) {
@@ -233,4 +261,32 @@ module.exports.getUser = async (req, res, next) => {
     }
 }
 
+module.exports.updateUserActivate = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        
+        const user = await getUserById(+id)
 
+        
+
+        if (!user) {
+            return createError(400, "User not found")
+        }
+
+        let status = user.isActive
+
+        if(status === true) {
+            status = false
+        } else if(status === false) {
+            status = true
+        }
+        
+        const updatedUser = await updateUserActivateService(+id, status)
+        res.status(200).json({
+            message: 'Update user success',
+            data: updatedUser
+        })
+    } catch (err) {
+        next(err)
+    }
+}
