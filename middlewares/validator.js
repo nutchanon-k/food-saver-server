@@ -1,5 +1,6 @@
 const Joi = require('joi')
-const createError = require('../utils/createError')
+const createError = require('../utils/createError');
+
 
 
 // Define the Role enum values
@@ -214,41 +215,41 @@ const allowedRolesUser = ['ADMIN', 'BUYER', 'SELLER']; // Adjust as needed accor
 
 // Create schema for searching User
 module.exports.searchUserSchema = Joi.object({
-  id: Joi.number().integer().positive()
+  id: Joi.number().integer().positive().allow('', null)
     .messages({
       'number.base': '"id" must be a number',
       'number.integer': '"id" must be an integer',
       'number.positive': '"id" must be a positive number',
     }),
-  firstName: Joi.string().max(50)
+  firstName: Joi.string().max(50).allow('', null)
     .messages({
       'string.base': '"firstName" must be a string',
       'string.empty': '"firstName" cannot be empty',
       'string.max': '"firstName" must be at most 50 characters long',
     }),
-  lastName: Joi.string().max(50)
+  lastName: Joi.string().max(50).allow('', null)
     .messages({
       'string.base': '"lastName" must be a string',
       'string.empty': '"lastName" cannot be empty',
       'string.max': '"lastName" must be at most 50 characters long',
     }),
-  email: Joi.string().email().max(100)
+  email: Joi.string().email().max(100).allow('', null)
     .messages({
       'string.base': '"email" must be a string',
       'string.email': '"email" must be a valid email',
       'string.max': '"email" must be at most 100 characters long',
     }),
-  role: Joi.string().valid(...allowedRolesUser)
+  role: Joi.string().valid(...allowedRolesUser).allow('', null)
     .messages({
       'string.base': '"role" must be a string',
       'any.only': `"role" must be one of [${allowedRolesUser.join(', ')}]`,
     }),
-  phoneNumber: Joi.string().pattern(/^[0-9]{10}$/).optional()
+  phoneNumber: Joi.string().pattern(/^[0-9]{10}$/).optional().allow('', null)
     .messages({
       'string.base': '"phoneNumber" must be a string',
       'string.pattern.base': '"phoneNumber" must be a 10-digit number',
     }),
-  isActive: Joi.boolean().optional()
+  isActive: Joi.boolean().optional().allow('', null)
     .messages({
       'boolean.base': '"isActive" must be a boolean (true or false)',
     }),
@@ -275,6 +276,11 @@ module.exports.searchUserSchema = Joi.object({
       'number.min': '"limit" must be at least 1',
       'number.max': '"limit" must be at most 200',
     }),
+  search: Joi.string().optional().allow('', null)
+    .messages({
+      'string.base': '"search" must be a string',
+    }),
+
 })
 
 
@@ -926,6 +932,10 @@ module.exports.searchFoundationSchema = Joi.object({
       'number.integer': '"limit" must be an integer',
       'number.min': '"limit" must be at least 1',
       'number.max': '"limit" must be at most 200',
+    }),
+  search: Joi.string().optional().allow('', null)
+    .messages({
+      'string.base': '"search" must be a string',
     }),
 })
 
