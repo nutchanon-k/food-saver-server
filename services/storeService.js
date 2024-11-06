@@ -109,9 +109,18 @@ module.exports.getStoreArrayService = async (filters) => {
           imageUrl: true,
           name: true,
           quantity: true,
-        },
-      },
-    },
+          productAllergens: {
+            select: {
+              allergen: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   });
 
   // Calculate for circular filtering
