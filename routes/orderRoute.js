@@ -2,7 +2,7 @@ const express = require("express");
 const authorize = require("../middlewares/roleAuthorize");
 const { authenticate } = require("../middlewares/authenticate");
 const { createOrderValidator, updateOrderValidator } = require("../middlewares/validator");
-const { createOrder, getOrderById, getAllOrders, updateOrder, deleteOrder, getBuyerOrders, getOrderItemBySellerId } = require("../controllers/orderController");
+const { createOrder, getOrderById, getAllOrders, updateOrder, deleteOrder, getBuyerOrders, getOrderItemBySellerId,placeOrder,verifyOrder } = require("../controllers/orderController");
 const orderRoute = express.Router();
 
 // สร้าง Order ใหม่ (Authenticated Users - Buyer Only) พร้อม Validation
@@ -25,6 +25,15 @@ orderRoute.patch('/:id',authenticate,authorize(['ADMIN']),updateOrderValidator,u
 
 // // ลบ Order ตาม ID (Admin Only)
 orderRoute.delete('/:id',authenticate,authorize(['ADMIN']),deleteOrder);
+
+// New: Place Order Route (Authenticated Users - Buyer Only)
+orderRoute.post('/place', authenticate, authorize(['BUYER']), placeOrder);
+
+// New: Verify Order Route (Authenticated Users - Buyer Only)
+orderRoute.post('/verify', authenticate, authorize(['BUYER']), verifyOrder);
+
+// // New: Stripe Webhook Route (No Authentication or Authorization)
+// orderRoute.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 
 module.exports = orderRoute
