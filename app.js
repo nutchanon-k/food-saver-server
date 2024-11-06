@@ -44,14 +44,14 @@ const { authenticate } = require("./middlewares/authenticate");
 // Distributed Denial of Service (DDoS): การโจมตีที่มุ่งหมายทำให้เซิร์ฟเวอร์ไม่สามารถให้บริการได้
 // Brute-Force Attacks: การพยายามเดารหัสผ่านหรือข้อมูลอื่น ๆ ด้วยการส่งคำขอจำนวนมาก
 // API Abuse: การใช้งาน API อย่างไม่ถูกต้องหรือเกินขอบเขตที่กำหนด
-const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 100, 
-    message: "You have made a request beyond the allowed limits. Please try again later.",
-    headers: true, 
-});
+// const limiter = rateLimit({
+//     windowMs: 10 * 60 * 1000, // 10 minutes
+//     max: 100, 
+//     message: "You have made a request beyond the allowed limits. Please try again later.",
+//     headers: true, 
+// });
 
-app.use(limiter);
+// app.use(limiter);
 
 
 // routes
