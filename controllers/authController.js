@@ -23,6 +23,16 @@ module.exports.login = async (req, res, next) => {
         if (!passwordIsMatch) {
             return createError(400, 'email or password is incorrect')
         }
+        const userData = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            profilePicture: user.profilePicture,
+            address: user.address,
+            phoneNumber: user.phoneNumber,
+            isActive: user.isActive,
+        }
 
         //generate token
         const payload = { id: user.id }
@@ -32,6 +42,7 @@ module.exports.login = async (req, res, next) => {
         //send token
         res.status(200).json({
             message: 'login success',
+            user: userData,
             token,
         })
 
