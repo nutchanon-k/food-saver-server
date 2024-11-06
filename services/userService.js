@@ -2,7 +2,7 @@ const prisma = require("../configs/prisma");
 
 
 module.exports.getUserByEmail = (email) => {
-  const user = prisma.user.findFirst({
+  const user = prisma.user.findUnique({
     where: {
       email,
     },
@@ -90,3 +90,15 @@ module.exports.getUserByRoleService = (role) => {
     }
   });
 };
+
+
+module.exports.updateUserActivateService = (userId, status) => {
+  return prisma.user.update({
+      where: {
+          id: Number(userId)
+      },
+      data: {
+          isActive: status
+      }
+  })
+}
