@@ -1,6 +1,7 @@
 require("dotenv").config();
 const createError = require('../utils/createError')
-const { createOrderService, getOrderByIdService, getAllOrdersService, updateOrderService, deleteOrderService, getOrderByUserIdService, getOrderItemsBySellerIdService } = require("../services/orderService");
+const stripe = require("../configs/stripe")
+const { createOrderService, getOrderByIdService, getAllOrdersService, updateOrderService, deleteOrderService, getOrderByUserIdService, getOrderItemsBySellerIdService, createStripeSession, updateOrderStatus } = require("../services/orderService");
 const { getProductService, getProductByOrderItems, updateProductService, getProductBySellerIdService } = require("../services/productService");
 const { createNotification } = require("../services/notificationService");
 
@@ -247,3 +248,103 @@ module.exports.getOrderItemBySellerId = async (req, res, next) => {
         next(err);
     }
 }
+
+
+
+// Function to place an order and create a Stripe session
+module.exports.placeOrder = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { orderItems, paymentMethod } = req.body;
+
+        // Validate order items
+        if (!Array.isArray(orderItems) || orderItems.length === 0) {
+            return next(createError(400, "Order items are required and should be an array."));
+        }
+
+        // Validate each item
+        orderItems.forEach(item => {
+            if (isNaN(Number(item.productId)) || isNaN(Number(item.quantity)) || isNaN(Number(item.unitPrice))) {
+                return next(createError(400, "Invalid product ID, quantity, or unit price."));
+            }
+        });
+
+        // Calculate total price
+        const totalPrice = orderItems.reduce((total, item) => {
+            return total + (Number(item.unitPrice) * Number(item.quantity));
+        }, 0);
+
+        // Verify product availability
+        for (const item of orderItems) {
+            const product = await getProductService(Number(item.productId));
+            if (!product) {
+                return next(createError(400, `Product with ID ${item.productId} not found`));
+            }
+            if (Number(product.quantity) < Number(item.quantity)) {
+                return next(createError(400, `Insufficient quantity for product ID ${item.productId}`));
+            }
+            await updateProductService(product.id, { quantity: product.quantity - item.quantity });
+        }
+
+        // Step 1: Create order in the database
+        const orderData = {
+            userId: +userId,
+            totalPrice: +totalPrice,
+            paymentMethod,
+            orderItems: orderItems,
+        };
+        const order = await createOrderService(orderData);
+
+        // Step 2: Create Stripe session with payment method
+        const session = await createStripeSession(orderItems, order.id, paymentMethod);
+        res.status(201).json({
+            message: 'Order created successfully',
+            session_url: session.url
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+// New: Verify Order Payment
+module.exports.verifyOrder = async (req, res, next) => {
+    const { orderId, success } = req.body;
+    try {
+        // const order = await getOrderByIdService(+orderId);
+        // if (!order || order.length === 0) {
+        //     return createError(404, "Order not found")
+        // }
+        if (success === "true") {
+            await updateOrderStatus(orderId, "COMPLETED");
+            res.json({ success: true, message: "Order verified and marked as paid" });
+        } else {
+            await updateOrderStatus(orderId, "FAILED");
+            res.json({ success: false, message: "Order not paid" });
+        }
+    } catch (error) {
+        next(createError(500, "Verification error"));
+    }
+};
+
+// module.exports.handleStripeWebhook = async (req, res) => {
+//     const sig = req.headers['stripe-signature'];
+//     let event;
+
+//     try {
+//         event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+//     } catch (err) {
+//         return res.status(400).send(`Webhook Error: ${err.message}`);
+//     }
+
+//     // Handle the event
+//     if (event.type === 'checkout.session.completed') {
+//         const session = event.data.object;
+//         const orderId = session.metadata.orderId;
+//         // Update order status to 'COMPLETED'
+//         await updateOrderStatus(orderId, 'COMPLETED');
+//     }
+
+//     // Return a 200 response to acknowledge receipt of the event
+//     res.status(200).json({ received: true });
+// };
