@@ -36,6 +36,7 @@ module.exports.updateStoreService = (storeId, storeData) => {
 // }
 module.exports.getStoreArrayService = async (filters) => {
   const whereClause = {};
+
   // If wanna find store in radius
   if (filters.radius && filters.latitude && filters.longitude) {
     const radiusInKm = parseFloat(filters.radius);
@@ -86,41 +87,110 @@ module.exports.getStoreArrayService = async (filters) => {
     whereClause.status = filters.status;
   }
 
-  // if (filters.latitude) {
-  //   whereClause.latitude = {
-  //     lte: parseFloat(filters.latitude),
-  //   };
-  // }
+  if (filters.allergen) {
+    filters.allergen = filters.allergen.split(",");
+    whereClause.allergen = {
+      some: {
+        productAllergens: {
+          some: {
+            allergenId: {
+              in: filters.allergen.map((id) => +id), // Array of allergen IDs
+            },
+          },
+        },
+      },
+    };
+  }
 
-  // if (filters.longitude) {
-  //   whereClause.longitude = {
-  //     lte: parseFloat(filters.longitude),
-  //   };
-  // }
+  if (filters.category) {
+    filters.category = filters.category.split(","); // Split category IDs into an array
+    whereClause.products = {
+      some: {
+        productCategories: {
+          some: {
+            categoryId: {
+              in: filters.category.map((id) => +id), // Convert category IDs to numbers
+            },
+          },
+        },
+      },
+    };
+  }
+
+  if (filters.search) {
+    const searchConditions = [
+      { storeName: { contains: filters.search } },
+      { storeAddress: { contains: filters.search } },
+      {
+        products: {
+          some: {
+            name: { contains: filters.search },
+          },
+        },
+      },
+    ];
+
+    // หากต้องการรวม id ในการค้นหา ถ้า search เป็นตัวเลข
+    if (!isNaN(filters.search)) {
+      // searchConditions.push({ userId: Number(filters.search) });
+      searchConditions.push({ id: Number(filters.search) });
+    }
+    whereClause.OR = searchConditions;
+  }
+
+  const dataForCount = {
+    where: whereClause,
+  };
+
+  const orderBy = {};
+  if (filters.sortBy) {
+    orderBy[filters.sortBy] = filters.sortOrder === "asc" ? "asc" : "desc";
+  }
+
+  // กำหนดการแบ่งหน้าแบบเงื่อนไข
+  let take;
+  let skip;
+
+  if (filters.page && filters.limit) {
+    take = +filters.limit;
+    skip = (+filters.page - 1) * take;
+  }
+
+  const countStore = await prisma.store.count(dataForCount);
+  let totalPages = 1;
+  if (filters.limit) {
+    totalPages = Math.ceil(countStore / filters.limit);
+  }
+
   const stores = await prisma.store.findMany({
     where: whereClause,
-    include: {
-      products: {
-        select: {
-          id: true,
-          description: true,
-          originalPrice: true,
-          salePrice: true,
-          imageUrl: true,
-          name: true,
-          quantity: true,
-          productAllergens: {
+    orderBy: filters.sortBy ? orderBy : undefined,
+    skip,
+    take,
+    include: filters.products
+      ? {
+          products: {
             select: {
-              allergen: {
-                select: {
-                  name: true
-                }
-              }
-            }
-          }
+              id: true,
+              description: true,
+              originalPrice: true,
+              salePrice: true,
+              imageUrl: true,
+              name: true,
+              quantity: true,
+              productAllergens: {
+                include: {
+                  allergen: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         }
-      }
-    }
+      : undefined,
   });
 
   // Calculate for circular filtering
@@ -144,7 +214,7 @@ module.exports.getStoreArrayService = async (filters) => {
       return earthRadiusKm * c;
     }
     // Filter stores by exact circular radius
-    return stores.filter((store) => {
+    stores.filter((store) => {
       const distance = calculateDistance(
         lat,
         lon,
@@ -155,9 +225,8 @@ module.exports.getStoreArrayService = async (filters) => {
       return distance <= radiusInKm;
     });
   }
-
   // If latitude/longitude are not provided, return the stores as-is (no radius filtering)
-  return stores;
+  return { stores: stores, totalPage: totalPages, countStore: countStore };
 };
 
 module.exports.getStoreService = (storeId) => {

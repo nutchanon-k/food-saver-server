@@ -134,10 +134,13 @@ module.exports.deleteStore = async(req,res,next) => {
 
 module.exports.getStoreArray = async(req,res,next) => {
   try {
+    console.log('This runs')
     const storeArray = await getStoreArrayService(req.query)
     res.status(200).json({
       'message' : "Get all store",
-      'data' : storeArray
+      'data' : storeArray.stores,
+      'totalPage' : storeArray.totalPage,
+      'countStore': storeArray.countStore
     })
   } catch (err) {
     console.log(err)
