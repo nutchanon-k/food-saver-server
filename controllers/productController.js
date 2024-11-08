@@ -77,9 +77,14 @@ module.exports.deleteProduct = async (req, res, next) => {
   try {
     const { id } = req.params; // Get the product ID from the request parameters
     const { role, id: userId } = req.user; // Extract the user's role and ID from the request user
+   
 
     // Find the store associated with the user
     const userStore = await getStoreByUserId(userId);
+    if(!userStore){
+      return createError(400 , "UNAUTHORIZED")
+    }
+    console.log(userStore)
     const storeId = userStore.id;
 
     // Retrieve products in the user's store
