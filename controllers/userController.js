@@ -211,7 +211,8 @@ module.exports.getUser = async (req, res, next) => {
                 phoneNumber: true,
                 isActive: true,
                 createdAt: true,
-                updatedAt: true
+                updatedAt: true,
+                store : true
               }
         }
 
