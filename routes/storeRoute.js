@@ -2,7 +2,8 @@ const express = require("express");
 const { authenticate } = require("../middlewares/authenticate");
 const authorize = require("../middlewares/roleAuthorize");
 const storeRoute = express.Router();
-const {createStore, updateStore, deleteStore, getStoreArray, getStoreById, updateStoreVerify} = require('../controllers/storeController');
+
+const {createStore, updateStore, deleteStore, getStoreArray, getStoreById, getStoreArrayNoCount, updateStoreVerify} = require('../controllers/storeController');
 const { createStoreValidator, updateStoreValidator } = require("../middlewares/validator");
 const upload = require("../middlewares/upload");
 module.exports = storeRoute
@@ -11,6 +12,8 @@ module.exports = storeRoute
 storeRoute.post('/',authenticate,authorize(['SELLER']),upload.single('profilePicture'),createStoreValidator,createStore)
 // GET /stores
 storeRoute.get('/',getStoreArray)
+// GET /stores/filter
+storeRoute.get('/filter',getStoreArrayNoCount)
 // GET /stores/:id
 storeRoute.get('/:id',getStoreById)
 // PATCH /stores/:id (Owner Only)
