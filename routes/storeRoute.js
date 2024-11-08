@@ -14,6 +14,6 @@ storeRoute.get('/',getStoreArray)
 // GET /stores/:id
 storeRoute.get('/:id',getStoreById)
 // PATCH /stores/:id (Owner Only)
-storeRoute.patch('/:id',authenticate,authorize(['SELLER']),updateStoreValidator,updateStore) //To make update store validator
+storeRoute.patch('/:id',authenticate,authorize(['SELLER']),upload.single('profilePicture'),updateStoreValidator, updateStore) //To make update store validator
 // DELETE /stores/:id (Admin/Owner Only)
 storeRoute.delete('/:id',authenticate,authorize(['SELLER','ADMIN']),deleteStore)  //To make controller

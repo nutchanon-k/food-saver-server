@@ -171,3 +171,11 @@ module.exports.getStoreService = (storeId) => {
     },
   });
 };
+
+module.exports.deleteStoreService = (storeId) => {
+  return prisma.store.delete({
+    where: {
+      id: +storeId,
+    },
+  });
+};

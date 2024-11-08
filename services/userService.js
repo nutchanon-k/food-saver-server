@@ -27,8 +27,10 @@ module.exports.getUserById = (id) => {
       phoneNumber: true,
       isActive: true,
       createdAt: true,
-      updatedAt: true
-    }
+      updatedAt: true,
+      store : true,
+    },
+
   });
  
 };

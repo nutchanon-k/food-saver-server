@@ -1,9 +1,10 @@
 const { message } = require('../configs/prisma')
-const {getStoreByUserId, getStoreService, createStoreService, getStoreById,getStoreArrayService, updateStoreService,} = require('../services/storeService')
+const {getStoreByUserId, getStoreService, createStoreService, getStoreById,getStoreArrayService, updateStoreService, deleteStoreService,} = require('../services/storeService')
 const createError = require('../utils/createError')
 const path = require('path')
 const fs = require('fs/promises')
 const cloudinary = require('../configs/cloudinary')
+const getPublicId = require('../utils/getPublicId')
 
 module.exports.createStore = async(req,res,next) => {
   try {
@@ -55,6 +56,7 @@ module.exports.updateStore = async(req,res,next) => {
   try {
     const {id} = req.params
     const userId = req.user.id
+    console.log(id)
     const {
       storeName,
       storeAddress,
@@ -66,7 +68,7 @@ module.exports.updateStore = async(req,res,next) => {
       latitude,
       longitude,
     } = req.body
-
+      console.log(req.body)
     // Find store
     const store = await getStoreById(id)
     if (!store) {
@@ -83,8 +85,8 @@ module.exports.updateStore = async(req,res,next) => {
       phoneNumber,
       timeOpen,
       timeClose,
-      latitude,
-      longitude,
+      latitude: latitude ? parseFloat(latitude) : undefined,
+      longitude: longitude ? parseFloat(longitude) : undefined,
     }
     const cleanFieldsToUpdate = Object.fromEntries(
       Object.entries(fieldsToUpdate).filter(([key, value]) => value !== undefined)
@@ -98,7 +100,7 @@ module.exports.updateStore = async(req,res,next) => {
         })
         fs.unlink(req.file.path)
         if (store.profilePicture) {
-            cloudinary.uploader.destroy(getPublicId(store.profilePicture))
+          await  cloudinary.uploader.destroy(getPublicId(store.profilePicture))
         }
         cleanFieldsToUpdate.profilePicture = uploadResult.secure_url || ''
     }
@@ -125,7 +127,14 @@ module.exports.deleteStore = async(req,res,next) => {
       return createError(403,"Unauthorized")
     }
     // 
-
+    // if (store.profilePicture){
+    //   await cloudinary.uploader.destroy(getPublicId(store.profilePicture))
+    // }
+    const deletedStore = await deleteStoreService(id)
+    res.status(200).json({
+      message: 'Delete store successfully',
+      data: deletedStore
+  })
   } catch (err) {
     console.log(err)
     next(err)
