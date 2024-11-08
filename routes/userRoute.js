@@ -10,11 +10,11 @@ const { currentUser, updateUser, deleteUser, getUser, updateUserActivate } = req
 
 userRoute.get("/me",authenticate,currentUser)
 
-userRoute.patch("/me",authenticate,upload.single('profilePicture'),updateUserValidator,updateUser)
+userRoute.patch("/me",authenticate,upload.single('image'),updateUserValidator,updateUser)
 
 userRoute.delete("/:id",authenticate, deleteUser)
 
-userRoute.get("/",authenticate,authorize(['ADMIN']),getUser)
+userRoute.get("/",authenticate,authorize(['ADMIN']),getUser)  
 
 
 

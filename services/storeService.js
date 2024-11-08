@@ -460,3 +460,11 @@ module.exports.getStoreArrayNoCountService = async (filters) => {
   // If latitude/longitude are not provided, return the stores as-is (no radius filtering)
   return { stores: stores };
 };
+
+module.exports.deleteStoreService = (storeId) => {
+  return prisma.store.delete({
+    where: {
+      id: +storeId,
+    },
+  });
+};

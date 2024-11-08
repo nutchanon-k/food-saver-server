@@ -27,7 +27,7 @@ module.exports.updateUser = async (req, res, next) => {
         const id = req.user.id
         const userRole = req.user.role
         const {firstName,lastName,email,password,role, address,phoneNumber,isActive,} = req.body;
-
+        console.log(req.body ,"body image")
         const user = await getUserById(Number(id))
         if (!user) {
             return createError(400, "User not found")
@@ -59,6 +59,7 @@ module.exports.updateUser = async (req, res, next) => {
 
 
         const haveFile = !!req.file
+        console.log(haveFile)
         let uploadResult = {}
         if (haveFile) {
             uploadResult = await cloudinary.uploader.upload(req.file.path, {
