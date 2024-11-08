@@ -1,9 +1,10 @@
 const { message } = require('../configs/prisma')
-const {getStoreByUserId, getStoreService, createStoreService, getStoreById,getStoreArrayService, updateStoreService,} = require('../services/storeService')
+const {getStoreByUserId, getStoreService, createStoreService, getStoreById,getStoreArrayService, updateStoreService, updateStoreVerifyService,} = require('../services/storeService')
 const createError = require('../utils/createError')
 const path = require('path')
 const fs = require('fs/promises')
 const cloudinary = require('../configs/cloudinary')
+const e = require('express')
 
 module.exports.createStore = async(req,res,next) => {
   try {
@@ -135,9 +136,14 @@ module.exports.deleteStore = async(req,res,next) => {
 module.exports.getStoreArray = async(req,res,next) => {
   try {
     const storeArray = await getStoreArrayService(req.query)
+
+
+
     res.status(200).json({
       'message' : "Get all store",
-      'data' : storeArray
+      'data' : storeArray.stores,
+      'totalPage' : storeArray.totalPage,
+      'countStore': storeArray.countStore
     })
   } catch (err) {
     console.log(err)
@@ -155,6 +161,34 @@ module.exports.getStoreById = async(req,res,next) => {
     }
     res.status(200).json({
       'message' : "Get store",
+      'data' : store
+    })
+  } catch (err) {
+    console.log(err)
+    next(err)
+  }
+}
+
+module.exports.updateStoreVerify = async(req,res,next) => {
+  try {
+    const {id} = req.params
+    if(!id){
+      return createError(400,"Store id is required")
+    }
+    if(isNaN(id) || id <= 0 || id % 1 !== 0){
+      return createError(400,"Store id must be a positive integer")
+    }
+    const findStore = await getStoreById(+id)
+    let verify = findStore.isVerify
+    
+    if (verify === true){
+      verify = false
+    }else if (verify === false){
+      verify = true
+    }
+    const store = await updateStoreVerifyService(+id, verify)
+    res.status(200).json({
+      'message' : "Update store verify",
       'data' : store
     })
   } catch (err) {

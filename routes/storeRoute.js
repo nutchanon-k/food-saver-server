@@ -2,7 +2,7 @@ const express = require("express");
 const { authenticate } = require("../middlewares/authenticate");
 const authorize = require("../middlewares/roleAuthorize");
 const storeRoute = express.Router();
-const {createStore, updateStore, deleteStore, getStoreArray, getStoreById} = require('../controllers/storeController');
+const {createStore, updateStore, deleteStore, getStoreArray, getStoreById, updateStoreVerify} = require('../controllers/storeController');
 const { createStoreValidator, updateStoreValidator } = require("../middlewares/validator");
 const upload = require("../middlewares/upload");
 module.exports = storeRoute
@@ -17,3 +17,7 @@ storeRoute.get('/:id',getStoreById)
 storeRoute.patch('/:id',authenticate,authorize(['SELLER']),updateStoreValidator,updateStore) //To make update store validator
 // DELETE /stores/:id (Admin/Owner Only)
 storeRoute.delete('/:id',authenticate,authorize(['SELLER','ADMIN']),deleteStore)  //To make controller
+
+
+
+storeRoute.patch('/:id/isVerify',authenticate,authorize(['ADMIN']),updateStoreVerify)

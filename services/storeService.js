@@ -1,3 +1,4 @@
+const { equal } = require("joi");
 const prisma = require("../configs/prisma");
 
 module.exports.getStoreByUserId = (userId) => {
@@ -86,6 +87,14 @@ module.exports.getStoreArrayService = async (filters) => {
     whereClause.status = filters.status;
   }
 
+  if (filters.isVerify) {
+    if (filters.isVerify === "true") {
+      whereClause.isVerify = true
+    } else if (filters.isVerify === "false") {
+      whereClause.isVerify = false
+    }
+  }
+
   // if (filters.latitude) {
   //   whereClause.latitude = {
   //     lte: parseFloat(filters.latitude),
@@ -97,9 +106,59 @@ module.exports.getStoreArrayService = async (filters) => {
   //     lte: parseFloat(filters.longitude),
   //   };
   // }
+
+  if (filters.search) {
+    const searchConditions = [
+      { storeName: { contains: filters.search } },
+      { storeAddress: { contains: filters.search } },
+      {
+        products: {
+          some: {
+            name: { contains: filters.search }
+          }
+        }
+      },
+    ];
+
+    // หากต้องการรวม id ในการค้นหา ถ้า search เป็นตัวเลข
+    if (!isNaN(filters.search)) {
+      // searchConditions.push({ userId: Number(filters.search) });
+      searchConditions.push({ id: Number(filters.search) });
+    }
+    whereClause.OR = searchConditions;
+  }
+  const orderBy = {};
+  if (filters.sortBy) {
+    orderBy[filters.sortBy] = filters.sortOrder === 'asc' ? 'asc' : 'desc';
+  }
+
+  // กำหนดการแบ่งหน้าแบบเงื่อนไข
+  let take;
+  let skip;
+
+  if (filters.page && filters.limit) {
+    take = +filters.limit;
+    skip = (+filters.page - 1) * take;
+  }
+  
+  
+  const dataForCount = {
+    where : whereClause,
+  }
+
+  const countStore = await prisma.store.count(dataForCount) 
+  let totalPages = 1
+  if(filters.limit) {
+       totalPages = Math.ceil(countStore / filters.limit);   
+  }
+
+
   const stores = await prisma.store.findMany({
     where: whereClause,
-    include: {
+    orderBy: filters.sortBy ? orderBy : undefined,
+    skip,
+    take,
+    include: filters.products ? {
       products: {
         select: {
           id: true,
@@ -111,7 +170,7 @@ module.exports.getStoreArrayService = async (filters) => {
           quantity: true,
         },
       },
-    },
+    } : undefined,
   });
 
   // Calculate for circular filtering
@@ -128,9 +187,9 @@ module.exports.getStoreArrayService = async (filters) => {
       const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(toRad(lat1)) *
-          Math.cos(toRad(lat2)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return earthRadiusKm * c;
     }
@@ -148,7 +207,7 @@ module.exports.getStoreArrayService = async (filters) => {
   }
 
   // If latitude/longitude are not provided, return the stores as-is (no radius filtering)
-  return stores;
+  return {stores : stores, totalPage: totalPages, countStore: countStore};
 };
 
 module.exports.getStoreService = (storeId) => {
@@ -171,3 +230,15 @@ module.exports.getStoreService = (storeId) => {
     },
   });
 };
+
+
+module.exports.updateStoreVerifyService = (storeId, verify) => {
+  return prisma.store.update({
+    where: {
+      id: +storeId,
+    },
+    data: {
+      isVerify: verify,
+    },
+  });
+}
