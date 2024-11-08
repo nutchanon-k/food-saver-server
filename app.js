@@ -34,6 +34,7 @@ const allergenRoute = require("./routes/allergenRoute");
 const cartItemRoute = require("./routes/cartItemRoute");
 const notificationRoute = require("./routes/notificationRoute");
 const searchRoute = require("./routes/searchRoute");
+const adminRouter = require("./routes/adminRoute");
 const { authenticate } = require("./middlewares/authenticate");
 
 
@@ -70,6 +71,7 @@ app.use('/notifications', notificationRoute);
 app.use('/categories', categoryRoute);
 app.use('/allergens', allergenRoute);
 app.use('/search', searchRoute);
+app.use('/data', adminRouter);
 
 // error/not found
 app.use(errorMiddleware);
