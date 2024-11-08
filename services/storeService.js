@@ -227,7 +227,9 @@ module.exports.getStoreService = (storeId) => {
       timeClose: true,
       latitude: true,
       longitude: true,
+      products : true,
     },
+
   });
 };
 
