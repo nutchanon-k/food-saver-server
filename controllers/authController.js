@@ -6,6 +6,8 @@ const bcrypt = require('bcryptjs');
 
 const { getUserByEmail, getUserById, updateUserService } = require("../services/userService");
 const { createUserService } = require("../services/authService");
+const authService = require('../services/authService');
+
 
 
 
@@ -32,6 +34,7 @@ module.exports.login = async (req, res, next) => {
             address: user.address,
             phoneNumber: user.phoneNumber,
             isActive: user.isActive,
+            store : user.store
         }
 
         //generate token
@@ -88,6 +91,64 @@ module.exports.register = async (req, res, next) => {
 
 }
 
+module.exports.googleAuth = async (req, res, next) => {
+    try{
+        const {email, given_name, family_name, picture } = req.body
+
+        const user = await getUserByEmail(email)
+        
+        let newUser = null
+        if(user){
+            data = {
+                firstName: given_name,
+                lastName: family_name,
+                email,
+                profilePicture: picture
+            }        
+            newUser = await updateUserService(user.id, data)
+        }else{
+            data = {
+                firstName: given_name,
+                lastName: family_name,
+                email,
+                profilePicture: picture
+            }
+            newUser = await createUserService(data)
+        }
+        
+        const userData = {
+            firstName: newUser.firstName,
+            lastName: newUser.lastName,
+            email: newUser.email,
+            role: newUser.role,
+            profilePicture: newUser.profilePicture,
+            address: newUser.address,
+            phoneNumber: newUser.phoneNumber,
+            isActive: newUser.isActive,
+            store : user?.store ? user.store : null 
+        }
+
+        //generate token
+        const payload = { id: newUser.id }
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' })
+
+
+        //send token
+        res.status(200).json({
+            message: 'login success',
+            user: userData,
+            token,
+        })
+        
+
+
+    }catch (err) {
+        next(err)
+    }
+
+
+  };
+  
 exports.forgotPassword = async (req, res, next) => {
     try {
         const { emailForgetPassword } = req.body
