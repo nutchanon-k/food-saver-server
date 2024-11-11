@@ -31,7 +31,7 @@ module.exports.getUserById = (id) => {
       isActive: true,
       createdAt: true,
       updatedAt: true,
-      store:true
+      store : true,
     },
 
   });
