@@ -32,6 +32,7 @@ module.exports.login = async (req, res, next) => {
             address: user.address,
             phoneNumber: user.phoneNumber,
             isActive: user.isActive,
+            store:user.store
         }
 
         //generate token
