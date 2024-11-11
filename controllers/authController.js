@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 
 const { getUserByEmail, getUserById, updateUserService } = require("../services/userService");
 const { createUserService } = require("../services/authService");
-const authService = require('../services/authService');
+
 
 
 
@@ -149,21 +149,21 @@ module.exports.googleAuth = async (req, res, next) => {
 
   };
   
-exports.forgotPassword = async (req, res, next) => {
+module.exports.forgotPassword = async (req, res, next) => {
     try {
-        const { emailForgetPassword } = req.body
+        const { email } = req.body
 
-        if (!emailForgetPassword) {
+        if (!email) {
             return createError(400, 'email is required') //ไม่ควรมี เพราะอาจเกิดการสุ่มได้
         }
         
-        const user = await getUserByEmail(emailForgetPassword)
+        const user = await getUserByEmail(email)
 
         if (!user) {
             return res.status(200).json({ message: 'email sent' });
         }
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '5m' });
-        const resetURL = `http://localhost:5173/reset-password/${token}`;
+        const resetURL = `http://localhost:5173/forgetPassword/${token}`;
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -173,11 +173,46 @@ exports.forgotPassword = async (req, res, next) => {
         });
 
         const mailOptions = {
+            from: `"Food Saver Team" <${process.env.EMAIL}>`, // เพิ่มชื่อบริษัท
             to: user.email,
-            from: process.env.EMAIL,
-            subject: 'Reset Password',
-            text: `You have requested to reset your password. Click the link below to reset your password: ${resetURL}`
+            subject: 'Reset Your Password',
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2>Password Reset Request</h2>
+                    <p>Hi ${user.firstName} ${user.lastName},</p>
+                    <p>You recently requested to reset your password for your account. Click the button below to reset it.</p>
+                    <a href="${resetURL}" style="
+                        display: inline-block;
+                        padding: 10px 20px;
+                        font-size: 16px;
+                        color: #ffffff;
+                        background-color: #007BFF;
+                        text-decoration: none;
+                        border-radius: 5px;
+                    ">Reset Password</a>
+                    <p>If you did not request a password reset, please ignore this email or reply to let us know.</p>
+                    <p>Thanks,<br/>Food Saver Team</p>
+                    <hr/>
+                    <p style="font-size: 12px; color: #777;">
+                        If you're having trouble clicking the "Reset Password" button, copy and paste the URL below into your web browser:
+                        <br/>
+                        <a href="${resetURL}" style="color: #007BFF;">${resetURL}</a>
+                    </p>
+                </div>
+            `,
+            text: `Hi ${user.firstName} ${user.lastName},
+        
+        You recently requested to reset your password for your account. Use the link below to set a new password:
+        
+        ${resetURL}
+        
+        If you did not request a password reset, please ignore this email or reply to let us know.
+        
+        Thanks,
+        Food Saver Team
+        `
         };
+        
 
         await transporter.sendMail(mailOptions);
         res.status(200).json({ message: 'email sent' });
@@ -187,7 +222,7 @@ exports.forgotPassword = async (req, res, next) => {
     }
 }
 
-exports.resetPassword = async (req, res, next) => {
+module.exports.resetPassword = async (req, res, next) => {
     try {
         const { password, confirmPassword } = req.body
         const { id } = req.user
@@ -201,7 +236,7 @@ exports.resetPassword = async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
-        const result =  await updateUserService(id, {password : hashedPassword}) 
+        const result =  await updateUserService(+id, {password : hashedPassword}) 
 
         res.status(200).json({ message: 'reset password success' })
 
