@@ -468,3 +468,61 @@ module.exports.getStoreArrayNoCountService = async (filters) => {
   // If latitude/longitude are not provided, return the stores as-is (no radius filtering)
   return { stores: stores };
 };
+
+module.exports.getPopularStoreService = async (filters) => {
+  const storeArray = await prisma.store.findMany({
+    take: 10,
+    include: {
+      _count: {
+        select: {
+          products: true,
+        },
+      },
+      products: {
+        include: {
+          orderItems: {
+            select: {
+              quantity: true,
+              orderId: true,
+            },
+          },
+        },
+      },
+    },
+    where: {
+      products: {
+        some: {
+          orderItems: {
+            some: {},
+          },
+        },
+      },
+    },
+  });
+
+  const storesWithMetrics = storeArray.map((store) => {
+    const totalOrders = new Set();
+    const totalQuantitySold = store.products.reduce((sum, product) => {
+      product.orderItems.forEach((item) => {
+        totalOrders.add(item.orderId);
+      });
+      return (
+        sum +
+        product.orderItems.reduce((itemSum, item) => itemSum + item.quantity, 0)
+      );
+    }, 0);
+
+    return {
+      id: store.id,
+      storeName: store.storeName,
+      profilePicture: store.profilePicture,
+      totalUniqueOrders: totalOrders.size,
+      totalQuantitySold,
+      productsCount: store._count.products,
+    };
+  });
+
+  return storesWithMetrics.sort(
+    (a, b) => b.totalQuantitySold - a.totalQuantitySold
+  );
+};

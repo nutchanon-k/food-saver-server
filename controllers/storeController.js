@@ -1,5 +1,5 @@
 const { message } = require('../configs/prisma')
-const {getStoreByUserId, getStoreService, createStoreService, getStoreById,getStoreArrayService, updateStoreService, getStoreArrayNoCountService,} = require('../services/storeService')
+const {getStoreByUserId, getStoreService, createStoreService, getStoreById,getStoreArrayService, updateStoreService, getStoreArrayNoCountService, getPopularStore, getPopularStoreService,} = require('../services/storeService')
 const createError = require('../utils/createError')
 const path = require('path')
 const fs = require('fs/promises')
@@ -159,7 +159,19 @@ module.exports.getStoreArrayNoCount = async(req,res,next) => {
     console.log(err)
     next(err)
   }
+}
 
+module.exports.getPopularStore = async(req,res,next) => {
+  try {
+    const storeArray = await getPopularStoreService()
+    res.status(200).json({
+      'message' : "Get popular store",
+      'data' : storeArray,
+    })
+  } catch (err) {
+    console.log(err)
+    next(err)
+  }
 }
 
 module.exports.getStoreById = async(req,res,next) => {

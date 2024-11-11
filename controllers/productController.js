@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { createProductService, getProductArrayService, deleteProductService, addCategory, addAllergen, updateProductService, getProductService, createProductAllService, getProductByStoreId, updateProductAllService } = require("../services/productService");
+const { createProductService, getProductArrayService, deleteProductService, addCategory, addAllergen, updateProductService, getProductService, createProductAllService, getProductByStoreId, updateProductAllService, getPopularProductService } = require("../services/productService");
 const { getStoreByUserId, getStoreService } = require("../services/storeService");
 const createError = require("../utils/createError");
 const path = require('path')
@@ -59,6 +59,19 @@ const { getAllergenByIdService } = require("../services/allergenService");
 //     next(err);
 //   }
 // };
+
+module.exports.getPopularProduct = async (req, res, next) => {
+  try {
+    const productArray = await getPopularProductService()
+    res.status(200).json({
+      message: "Get popular product",
+      data: productArray
+    })
+  } catch (err) {
+    console.log(err)
+    next(err)
+  }
+}
 
 module.exports.getProductArray = async (req, res, next) => {
   try {
