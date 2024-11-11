@@ -1,6 +1,8 @@
 const prisma = require("../configs/prisma");
 
 
+
+
 module.exports.createUserService = async (data) => {
     return await prisma.user.create({
         data:data,
@@ -15,8 +17,10 @@ module.exports.createUserService = async (data) => {
             phoneNumber: true,
             isActive: true,
             createdAt: true,
-            updatedAt: true
+            updatedAt: true,            
         }
     })
 }
+
+
 
