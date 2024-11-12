@@ -50,8 +50,24 @@ module.exports.getProductArrayService = async (filters) => {
   return await prisma.product.findMany({
     where: whereClause,
     include: {
-      productCategories: true,
-      productAllergens: true
+      productCategories: {
+        include : {
+          category : {
+            select : {
+              name : true
+            }
+          }
+        }
+      },
+      productAllergens: {
+        include : {
+          allergen : {
+            select : {
+              name : true
+            }
+          }
+        }
+      }
     }
   });
 }
