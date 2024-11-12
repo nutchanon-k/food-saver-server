@@ -519,6 +519,7 @@ module.exports.getPopularStoreService = async (filters) => {
   return storesWithMetrics.sort(
     (a, b) => b.totalQuantitySold - a.totalQuantitySold
   );
+}
 module.exports.deleteStoreService = (storeId) => {
   return prisma.store.delete({
     where: {
