@@ -38,8 +38,8 @@ module.exports.createStore = async(req,res,next) => {
       phoneNumber,
       timeOpen,
       timeClose,
-      latitude,
-      longitude,
+      latitude: parseFloat(latitude),  // แปลงเป็น Float
+      longitude: parseFloat(longitude), // แปลงเป็น Float
       profilePicture : image
     }
     const store = await createStoreService(data)
