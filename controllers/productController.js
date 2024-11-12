@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { createProductService, getProductArrayService, deleteProductService, addCategory, addAllergen, updateProductService, getProductService, createProductAllService, getProductByStoreId, updateProductAllService } = require("../services/productService");
+const { createProductService, getProductArrayService, deleteProductService, addCategory, addAllergen, updateProductService, getProductService, createProductAllService, getProductByStoreId, updateProductAllService, getPopularProductService } = require("../services/productService");
 const { getStoreByUserId, getStoreService } = require("../services/storeService");
 const createError = require("../utils/createError");
 const path = require('path')
@@ -60,6 +60,19 @@ const { getAllergenByIdService } = require("../services/allergenService");
 //   }
 // };
 
+module.exports.getPopularProduct = async (req, res, next) => {
+  try {
+    const productArray = await getPopularProductService()
+    res.status(200).json({
+      message: "Get popular product",
+      data: productArray
+    })
+  } catch (err) {
+    console.log(err)
+    next(err)
+  }
+}
+
 module.exports.getProductArray = async (req, res, next) => {
   try {
     const productArray = await getProductArrayService(req.query)
@@ -77,9 +90,14 @@ module.exports.deleteProduct = async (req, res, next) => {
   try {
     const { id } = req.params; // Get the product ID from the request parameters
     const { role, id: userId } = req.user; // Extract the user's role and ID from the request user
+   
 
     // Find the store associated with the user
     const userStore = await getStoreByUserId(userId);
+    if(!userStore){
+      return createError(400 , "UNAUTHORIZED")
+    }
+    console.log(userStore)
     const storeId = userStore.id;
 
     // Retrieve products in the user's store

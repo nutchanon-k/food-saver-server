@@ -135,7 +135,11 @@ module.exports.getOrderItemsBySellerIdService = async (sellerId) => {
       }
     },
     include: {
-      order: true,
+      order: {
+        include: {
+          user: true // เพิ่ม include user จาก order
+        }
+      },
       product: true,
     },
   });

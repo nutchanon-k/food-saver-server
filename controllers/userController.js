@@ -26,7 +26,7 @@ module.exports.updateUser = async (req, res, next) => {
     try {
         const id = req.user.id
         const userRole = req.user.role
-        const {firstName,lastName,email,password,role, address,phoneNumber,isActive,} = req.body;
+        const {firstName,lastName,email,password,role, address,phoneNumber,isActive} = req.body;
         console.log(req.body ,"body image")
         const user = await getUserById(Number(id))
         if (!user) {
@@ -90,7 +90,8 @@ module.exports.deleteUser = async (req, res, next) => {
         const id = req.params.id
         const userId = req.user.id
         const userRole = req.user.role
-
+        console.log("id" , id)
+        console.log("userId" , userId)
         // admin ลบได้ทุกคน ถ้าไม่ใช่ admin ลบได้แค่ตัวเอง
         
         if (userRole !== 'ADMIN') {
