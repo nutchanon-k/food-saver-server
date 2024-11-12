@@ -7,7 +7,7 @@ const getPublicId = require('../utils/getPublicId');
 const { getAllergenByName, createAllergenService, getAllergenServices, updateAllergenService, deleteAllergenService } = require("../services/allergenService");
 const { create } = require("domain");
 const { message } = require("../configs/prisma");
-const { searchAllergenSchema } = require("../middlewares/validator");
+const { searchAllergenSchema } = require("../middlewares/validator"); 
 
 
 const adminService = require('../services/adminService');

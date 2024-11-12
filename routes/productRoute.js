@@ -3,13 +3,15 @@ const authorize = require("../middlewares/roleAuthorize");
 const { authenticate } = require("../middlewares/authenticate");
 const productRoute = express.Router();
 const {createProductValidator, updateProductValidator, createProductValidatorAll, updateProductValidatorAll} = require("../middlewares/validator");
-const { createProduct, getProductArray, deleteProduct, addProductCategories, addAllergensCategories, addProductAllergens, updateProduct, createProductAll, updateProductAll } = require("../controllers/productController");
+const { createProduct, getProductArray, deleteProduct, addProductCategories, addAllergensCategories, addProductAllergens, updateProduct, createProductAll, updateProductAll, getPopularProduct } = require("../controllers/productController");
 const upload = require("../middlewares/upload");
 
 // POST /products (Seller Only)
 // productRoute.post('/',authenticate,authorize(['SELLER']),upload.single('imageUrl'),createProductValidator,createProduct)
 // GET /products
 productRoute.get('/',getProductArray)
+productRoute.get('/popular',getPopularProduct)
+
 // PUT /products/:id (Owner Only)
 // productRoute.patch('/:id',authenticate,authorize(['SELLER']),upload.single('imageUrl'),updateProductValidator,updateProduct)
 // DELETE /products/:id (Admin/Owner Only)

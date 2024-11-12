@@ -6,12 +6,13 @@ module.exports.getUserByEmail = (email) => {
     where: {
       email,
     },
-    include:{
-      store:true
-    }
+    include: {
+      store: true,
+    },
   });
   return user;
 };
+
 
 module.exports.getUserById = (id) => {
   // console.log("id from service", id)
