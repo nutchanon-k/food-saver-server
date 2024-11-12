@@ -1,3 +1,4 @@
+const { equal } = require("joi");
 const prisma = require("../configs/prisma");
 
 module.exports.getStoreByUserId = (userId) => {
@@ -87,35 +88,25 @@ module.exports.getStoreArrayService = async (filters) => {
     whereClause.status = filters.status;
   }
 
-  if (filters.allergen) {
-    filters.allergen = filters.allergen.split(",");
-    whereClause.allergens = {
-      some: {
-        productAllergens: {
-          some: {
-            allergenId: {
-              in: filters.allergen.map((id) => +id), // Array of allergen IDs
-            },
-          },
-        },
-      },
-    };
+  if (filters.isVerify) {
+    if (filters.isVerify === "true") {
+      whereClause.isVerify = true
+    } else if (filters.isVerify === "false") {
+      whereClause.isVerify = false
+    }
   }
 
-  if (filters.category) {
-    filters.category = filters.category.split(","); // Split category IDs into an array
-    whereClause.products = {
-      some: {
-        productCategories: {
-          some: {
-            categoryId: {
-              in: filters.category.map((id) => +id), // Convert category IDs to numbers
-            },
-          },
-        },
-      },
-    };
-  }
+  // if (filters.latitude) {
+  //   whereClause.latitude = {
+  //     lte: parseFloat(filters.latitude),
+  //   };
+  // }
+
+  // if (filters.longitude) {
+  //   whereClause.longitude = {
+  //     lte: parseFloat(filters.longitude),
+  //   };
+  // }
 
   if (filters.search) {
     const searchConditions = [
@@ -124,9 +115,9 @@ module.exports.getStoreArrayService = async (filters) => {
       {
         products: {
           some: {
-            name: { contains: filters.search },
-          },
-        },
+            name: { contains: filters.search }
+          }
+        }
       },
     ];
 
@@ -137,14 +128,9 @@ module.exports.getStoreArrayService = async (filters) => {
     }
     whereClause.OR = searchConditions;
   }
-
-  const dataForCount = {
-    where: whereClause,
-  };
-
   const orderBy = {};
   if (filters.sortBy) {
-    orderBy[filters.sortBy] = filters.sortOrder === "asc" ? "asc" : "desc";
+    orderBy[filters.sortBy] = filters.sortOrder === 'asc' ? 'asc' : 'desc';
   }
 
   // กำหนดการแบ่งหน้าแบบเงื่อนไข
@@ -155,42 +141,37 @@ module.exports.getStoreArrayService = async (filters) => {
     take = +filters.limit;
     skip = (+filters.page - 1) * take;
   }
-
-  const countStore = await prisma.store.count(dataForCount);
-  let totalPages = 1;
-  if (filters.limit) {
-    totalPages = Math.ceil(countStore / filters.limit);
+  
+  
+  const dataForCount = {
+    where : whereClause,
   }
+
+  const countStore = await prisma.store.count(dataForCount) 
+  let totalPages = 1
+  if(filters.limit) {
+       totalPages = Math.ceil(countStore / filters.limit);   
+  }
+
 
   const stores = await prisma.store.findMany({
     where: whereClause,
     orderBy: filters.sortBy ? orderBy : undefined,
     skip,
     take,
-    include: filters.products
-      ? {
-          products: {
-            select: {
-              id: true,
-              description: true,
-              originalPrice: true,
-              salePrice: true,
-              imageUrl: true,
-              name: true,
-              quantity: true,
-              productAllergens: {
-                include: {
-                  allergen: {
-                    select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        }
-      : undefined,
+    include: filters.products ? {
+      products: {
+        select: {
+          id: true,
+          description: true,
+          originalPrice: true,
+          salePrice: true,
+          imageUrl: true,
+          name: true,
+          quantity: true,
+        },
+      },
+    } : undefined,
   });
 
   // Calculate for circular filtering
@@ -207,9 +188,9 @@ module.exports.getStoreArrayService = async (filters) => {
       const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(toRad(lat1)) *
-          Math.cos(toRad(lat2)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return earthRadiusKm * c;
     }
@@ -226,7 +207,7 @@ module.exports.getStoreArrayService = async (filters) => {
     });
   }
   // If latitude/longitude are not provided, return the stores as-is (no radius filtering)
-  return { stores: stores, totalPage: totalPages, countStore: countStore };
+  return {stores : stores, totalPage: totalPages, countStore: countStore};
 };
 
 module.exports.getStoreService = (storeId) => {
@@ -246,10 +227,23 @@ module.exports.getStoreService = (storeId) => {
       timeClose: true,
       latitude: true,
       longitude: true,
+      products : true,
     },
+
   });
 };
 
+
+module.exports.updateStoreVerifyService = (storeId, verify) => {
+  return prisma.store.update({
+    where: {
+      id: +storeId,
+    },
+    data: {
+      isVerify: verify,
+    },
+  });
+}
 module.exports.getStoreArrayNoCountService = async (filters) => {
   const whereClause = {};
 
@@ -525,4 +519,10 @@ module.exports.getPopularStoreService = async (filters) => {
   return storesWithMetrics.sort(
     (a, b) => b.totalQuantitySold - a.totalQuantitySold
   );
+module.exports.deleteStoreService = (storeId) => {
+  return prisma.store.delete({
+    where: {
+      id: +storeId,
+    },
+  });
 };

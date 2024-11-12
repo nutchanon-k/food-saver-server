@@ -6,9 +6,13 @@ module.exports.getUserByEmail = (email) => {
     where: {
       email,
     },
+    include: {
+      store: true,
+    },
   });
   return user;
 };
+
 
 module.exports.getUserById = (id) => {
   // console.log("id from service", id)
@@ -27,8 +31,10 @@ module.exports.getUserById = (id) => {
       phoneNumber: true,
       isActive: true,
       createdAt: true,
-      updatedAt: true
-    }
+      updatedAt: true,
+      store : true,
+    },
+
   });
  
 };
