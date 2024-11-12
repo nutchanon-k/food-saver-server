@@ -1,9 +1,9 @@
-const prisma = require("../configs/prisma")
+const prisma = require("../configs/prisma");
 
 module.exports.createProductService = async (data) => {
-  const dateString = data.expirationDate
-  const expDateTime = new Date(dateString)
-  data.expirationDate = expDateTime
+  const dateString = data.expirationDate;
+  const expDateTime = new Date(dateString);
+  data.expirationDate = expDateTime;
   return await prisma.product.create({
     data: data,
     select: {
@@ -15,16 +15,61 @@ module.exports.createProductService = async (data) => {
       expirationDate: true,
       imageUrl: true,
       quantity: true,
-    }
-  })
-}
+    },
+  });
+};
+
+module.exports.getPopularProductService = async () => {
+  const products = await prisma.product.findMany({
+    take: 10,
+    include: {
+      orderItems: {
+        select: {
+          quantity: true,
+          orderId: true,
+        },
+      },
+      store: true,
+      productCategories: {
+        include: {
+          category: true,
+        },
+      },
+      productAllergens: {
+        include: {
+          allergen: true,
+        },
+      },
+    },
+    where: {
+      orderItems: {
+        some: {},
+      },
+    },
+  });
+
+  const productsWithSales = products.map((product) => {
+    const totalQuantitySold = product.orderItems.reduce((sum, item) => {
+      return sum + item.quantity;
+    }, 0);
+
+    return {
+      ...product,
+      totalQuantitySold,
+    };
+  });
+
+  return productsWithSales.sort(
+    (a, b) => b.totalQuantitySold - a.totalQuantitySold
+  );
+};
 
 module.exports.getProductArrayService = async (filters) => {
   const whereClause = {};
 
   // Add filters to the whereClause based on provided filters
   if (filters.id) {
-    whereClause.id = +filters.id
+    whereClause.id = +filters.id;
   }
 
   if (filters.storeId) {
@@ -36,8 +81,8 @@ module.exports.getProductArrayService = async (filters) => {
       contains: filters.name,
       // Convert both the field and input to lower case for case-insensitive comparison
       not: {
-        equals: '', // Optional: If you want to exclude empty strings
-      }
+        equals: "", // Optional: If you want to exclude empty strings
+      },
     };
   }
   if (filters.salePrice) {
@@ -51,62 +96,66 @@ module.exports.getProductArrayService = async (filters) => {
     where: whereClause,
     include: {
       productCategories: true,
-      productAllergens: true
-    }
+      productAllergens: true,
+      store: {
+        select: {
+          storeName: true,
+          profilePicture: true,
+        },
+      },
+    },
   });
-}
+};
 
 module.exports.deleteProductService = async (productId) => {
   return await prisma.product.delete({
     where: {
-      id: +productId
-    }
-  })
-}
+      id: +productId,
+    },
+  });
+};
 
 module.exports.addCategory = async (data) => {
   return await prisma.productCategories.createMany({
-    data: data
-  })
-}
+    data: data,
+  });
+};
 
 module.exports.addAllergen = async (data) => {
   return await prisma.productAllergen.createMany({
-    data: data
-  })
-}
+    data: data,
+  });
+};
 
 module.exports.updateProductService = async (productId, productData) => {
   return await prisma.product.update({
     where: {
-      id: +productId
+      id: +productId,
     },
-    data: productData
-  })
-}
+    data: productData,
+  });
+};
 
 module.exports.getProductService = (productId) => {
   return prisma.product.findUnique({
     where: {
-      id: +productId
-    }
-  })
-}
-
+      id: +productId,
+    },
+  });
+};
 
 module.exports.getProductByOrderItems = async (orderItems) => {
   return await prisma.product.findMany({
     where: {
       id: {
-        in: orderItems.map(item => item.productId)
-      }
+        in: orderItems.map((item) => item.productId),
+      },
     },
     select: {
       store: true,
     },
-  })
-}
-
+  });
+};
 
 // module.exports.getProductByOrderItems = async (productDonations) => {
 //   return await prisma.product.findMany({
@@ -121,11 +170,21 @@ module.exports.getProductByOrderItems = async (orderItems) => {
 //   })
 // }
 
-
 module.exports.createProductAllService = async (data) => {
-  const { storeId, name, description, originalPrice, salePrice, expirationDate, imageUrl, quantity, productCategories, productAllergens } = data;
-  const dateString = expirationDate
-  const expDateTime = new Date(dateString)
+  const {
+    storeId,
+    name,
+    description,
+    originalPrice,
+    salePrice,
+    expirationDate,
+    imageUrl,
+    quantity,
+    productCategories,
+    productAllergens,
+  } = data;
+  const dateString = expirationDate;
+  const expDateTime = new Date(dateString);
 
   return await prisma.product.create({
     data: {
@@ -139,29 +198,39 @@ module.exports.createProductAllService = async (data) => {
       quantity: +quantity,
       productCategories: productCategories
         ? {
-          create: productCategories.map((categoryId) => ({
-            categoryId: +categoryId
-          })),
-        }
+            create: productCategories.map((categoryId) => ({
+              categoryId: +categoryId,
+            })),
+          }
         : undefined,
       productAllergens: productAllergens
         ? {
-          create: productAllergens.map((allergenId) => ({
-            allergenId: +allergenId,
-          })),
-        }
+            create: productAllergens.map((allergenId) => ({
+              allergenId: +allergenId,
+            })),
+          }
         : undefined,
     },
     include: {
       productCategories: true,
-      productAllergens: true
-
-    }
-  })
-}
+      productAllergens: true,
+    },
+  });
+};
 
 module.exports.updateProductAllService = async (id, data) => {
-  const { storeId, name, description, originalPrice, salePrice, expirationDate, imageUrl, quantity, productCategories, productAllergens } = data;
+  const {
+    storeId,
+    name,
+    description,
+    originalPrice,
+    salePrice,
+    expirationDate,
+    imageUrl,
+    quantity,
+    productCategories,
+    productAllergens,
+  } = data;
 
   const updateData = {
     storeId: +storeId,
@@ -171,15 +240,23 @@ module.exports.updateProductAllService = async (id, data) => {
     salePrice: +salePrice,
     expirationDate,
     imageUrl,
-    quantity : +quantity,
-    productCategories: productCategories ? {
-      deleteMany: {}, // Remove existing categories
-      create: productCategories.map(categoryId => ({ categoryId: +categoryId })),
-    } : undefined,
-    productAllergens: productAllergens ? {
-      deleteMany: {}, // Remove existing allergens
-      create: productAllergens.map(allergenId => ({allergenId : +allergenId })),
-    } : undefined,
+    quantity: +quantity,
+    productCategories: productCategories
+      ? {
+          deleteMany: {}, // Remove existing categories
+          create: productCategories.map((categoryId) => ({
+            categoryId: +categoryId,
+          })),
+        }
+      : undefined,
+    productAllergens: productAllergens
+      ? {
+          deleteMany: {}, // Remove existing allergens
+          create: productAllergens.map((allergenId) => ({
+            allergenId: +allergenId,
+          })),
+        }
+      : undefined,
   };
   const updatedProduct = await prisma.product.update({
     where: { id },
@@ -191,17 +268,12 @@ module.exports.updateProductAllService = async (id, data) => {
   });
 
   return updatedProduct;
-}
-
+};
 
 module.exports.getProductByStoreId = async (storeId) => {
   return await prisma.product.findMany({
     where: {
-      storeId: +storeId
+      storeId: +storeId,
     },
-  })
-}
-
-
-
-
+  });
+};
