@@ -95,26 +95,24 @@ module.exports.getProductArrayService = async (filters) => {
   return await prisma.product.findMany({
     where: whereClause,
     include: {
-
       productCategories: {
-        include : {
-          category : {
-            select : {
-              name : true
+        include: {
+          category: {
+            select: {
+              name: true
             }
           }
         }
       },
       productAllergens: {
-        include : {
-          allergen : {
-            select : {
-              name : true
+        include: {
+          allergen: {
+            select: {
+              name: true
             }
           }
         }
-      }
-    },
+      },
       store: {
         select: {
           storeName: true,
@@ -122,9 +120,10 @@ module.exports.getProductArrayService = async (filters) => {
         },
       },
     },
-
   });
 };
+
+
 
 module.exports.deleteProductService = async (productId) => {
   return await prisma.product.delete({
@@ -217,17 +216,17 @@ module.exports.createProductAllService = async (data) => {
       quantity: +quantity,
       productCategories: productCategories
         ? {
-            create: productCategories.map((categoryId) => ({
-              categoryId: +categoryId,
-            })),
-          }
+          create: productCategories.map((categoryId) => ({
+            categoryId: +categoryId,
+          })),
+        }
         : undefined,
       productAllergens: productAllergens
         ? {
-            create: productAllergens.map((allergenId) => ({
-              allergenId: +allergenId,
-            })),
-          }
+          create: productAllergens.map((allergenId) => ({
+            allergenId: +allergenId,
+          })),
+        }
         : undefined,
     },
     include: {
@@ -262,19 +261,19 @@ module.exports.updateProductAllService = async (id, data) => {
     quantity: +quantity,
     productCategories: productCategories
       ? {
-          deleteMany: {}, // Remove existing categories
-          create: productCategories.map((categoryId) => ({
-            categoryId: +categoryId,
-          })),
-        }
+        deleteMany: {}, // Remove existing categories
+        create: productCategories.map((categoryId) => ({
+          categoryId: +categoryId,
+        })),
+      }
       : undefined,
     productAllergens: productAllergens
       ? {
-          deleteMany: {}, // Remove existing allergens
-          create: productAllergens.map((allergenId) => ({
-            allergenId: +allergenId,
-          })),
-        }
+        deleteMany: {}, // Remove existing allergens
+        create: productAllergens.map((allergenId) => ({
+          allergenId: +allergenId,
+        })),
+      }
       : undefined,
   };
   const updatedProduct = await prisma.product.update({
