@@ -22,6 +22,7 @@ module.exports.addToCart = async (req, res, next) => {
     try {
         const buyerId = req.user.id
         const { productId, quantity } = req.body
+        console.log(req.body)
 
 
         const product = await getProductService(productId)
@@ -152,6 +153,8 @@ module.exports.updateCartItem = async (req, res, next) => {
         if (!cartItem) {
             createError(400, 'Cart item not found')
         }
+
+        console.log('xxxxxx',cartItem)
         if (Number(userId) !== Number(cartItem.userId)) {
             createError(400, 'Not owned user can not update cart item')
         }
@@ -177,6 +180,7 @@ module.exports.deleteCartItem = async (req, res, next) => {
     try {
         const { id } = req.params
         const userId = req.user.id
+        console.log(userId)
         const cartItem = await getCartItemForCheckService({ where: { id: Number(id) } })
         if (!cartItem) {
             createError(400, 'Cart item not found')
