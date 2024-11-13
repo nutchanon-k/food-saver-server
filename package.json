@@ -9,7 +9,7 @@
     "resetDB": "node prisma/resetDB.js"
   },
   "prisma": {
-    "seed": "node prisma/seedOrderItem.js"
+    "seed": "node prisma/seedAddCategoryPic.js"
   },
   "author": "",
   "license": "ISC",
