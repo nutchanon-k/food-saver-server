@@ -434,6 +434,7 @@ const createProductSchema = Joi.object({
   // expirationDate,
   expirationDate: Joi.date()
     .optional()
+    .allow('', null)
     .messages({
       'date.base': `"expirationDate" should be a valid date`,
     }),
@@ -508,6 +509,7 @@ const updateProductSchema = Joi.object({
 
   expirationDate: Joi.date()
     .optional()
+    .allow('', null)
     .messages({
       'date.base': `"expirationDate" should be a valid date`,
     }),
