@@ -38,8 +38,8 @@ module.exports.createStore = async(req,res,next) => {
       phoneNumber,
       timeOpen,
       timeClose,
-      latitude,
-      longitude,
+      latitude : parseFloat(latitude),
+      longitude : parseFloat(longitude),
       profilePicture : image
     }
     const store = await createStoreService(data)
