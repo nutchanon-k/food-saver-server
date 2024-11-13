@@ -1,7 +1,7 @@
 require("dotenv").config();
 const createError = require('../utils/createError')
 const stripe = require("../configs/stripe")
-const { createOrderService, getOrderByIdService, getAllOrdersService, updateOrderService, deleteOrderService, getOrderByUserIdService, getOrderItemsBySellerIdService, createStripeSession, updateOrderStatus } = require("../services/orderService");
+const { createOrderService, getOrderByIdService, getAllOrdersService, updateOrderService, deleteOrderService, getOrderByUserIdService, getOrderItemsBySellerIdService, createStripeSession, updateOrderStatus, getOrderDetailsWithStoreService,getOrderHistoryByUserIdService, getOrdersBySellerService,acceptOrderService } = require("../services/orderService");
 const { getProductService, getProductByOrderItems, updateProductService, getProductBySellerIdService } = require("../services/productService");
 const { createNotification } = require("../services/notificationService");
 
@@ -348,3 +348,111 @@ module.exports.verifyOrder = async (req, res, next) => {
 //     // Return a 200 response to acknowledge receipt of the event
 //     res.status(200).json({ received: true });
 // };
+
+
+
+// This getOrderDetailsWithStore controller function fetches the order details, including store information
+module.exports.getOrderDetailsWithStore = async (req, res, next) => {
+    try {
+        const { id } = req.params; // Assuming order ID will be provided as a parameter
+        if (!id) {
+            return next(createError(400, "Order ID is required"));
+        }
+
+        const orderDetails = await getOrderDetailsWithStoreService(+id);
+        if (!orderDetails) {
+            return next(createError(404, "Order not found"));
+        }
+
+        res.status(200).json({
+            message: "Order details with store information fetched successfully",
+            orderDetails,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+module.exports.getOrderHistoryByUserId = async (req, res, next) => {
+    try {
+      const { userId } = req.params; // Extract userId from the request parameters
+      if (!userId) {
+        return next(createError(400, "User ID is required"));
+      }
+  
+      const orderHistory = await getOrderHistoryByUserIdService(+userId); // Call the service with the user ID
+  
+      if (!orderHistory || orderHistory.length === 0) {
+        return next(createError(404, "No orders found for this user"));
+      }
+  
+      res.status(200).json({
+        message: "Order history fetched successfully",
+        orderHistory,
+      });
+    } catch (error) {
+      console.error("Error fetching order history:", error);
+      next(createError(500, "Failed to fetch order history"));
+    }
+  };
+
+
+  module.exports.getOrdersBySeller = async (req, res, next) => {
+    try {
+      const sellerId = req.user.id; // Extract sellerId from the authenticated user
+     
+
+      if (!sellerId) {
+        return next(createError(400, "Seller ID is required"));
+      }
+  
+      const orders = await getOrdersBySellerService(+sellerId);
+  
+      if (!orders || orders.length === 0) {
+        return next(createError(404, "No orders found for this seller"));
+      }
+  
+      res.status(200).json({
+        message: "Orders for seller fetched successfully",
+        orders,
+      });
+    } catch (error) {
+      console.error("Error fetching orders for seller:", error);
+      next(createError(500, "Failed to fetch orders for seller"));
+    }
+  };
+
+
+
+
+// Updated Controller: Accept Order
+module.exports.acceptOrder = async (req, res, next) => {
+  try {
+    const orderId = parseInt(req.params.id, 10);
+
+    if (isNaN(orderId)) {
+      return next(createError(400, "Invalid order ID"));
+    }
+
+    const sellerId = req.user.id;
+    const userRole = req.user.role;
+
+    // Use the service to accept the order
+    const updatedOrder = await acceptOrderService(orderId, sellerId, userRole);
+
+    res.status(200).json({
+      message: "Order marked as picked up successfully",
+      order: updatedOrder,
+    });
+  } catch (error) {
+    console.error("Error accepting order:", error);
+    if (error.message === "Order not found") {
+      return next(createError(404, "Order not found"));
+    }
+    if (error.message === "Unauthorized") {
+      return next(createError(403, "You are not authorized to accept this order"));
+    }
+    next(createError(500, "Failed to accept the order"));
+  }
+};

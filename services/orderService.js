@@ -145,3 +145,174 @@ module.exports.getOrderItemsBySellerIdService = async (sellerId) => {
   });
   return orders;
 };
+
+// All Order for Slip
+
+module.exports.getOrderDetailsWithStoreService = async (orderId) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      orderItems: {
+        include: {
+          product: {
+            include: {
+              store: true, // Fetch store information related to each product
+            },
+          },
+        },
+      },
+      user: true, // Fetch buyer/user information if needed
+    },
+  });
+  return order;
+};
+
+// Service to fetch order history for a specific user with detailed information
+module.exports.getOrderHistoryByUserIdService = async (userId) => {
+  try {
+    const orders = await prisma.order.findMany({
+      where: { userId: +userId },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                imageUrl: true,
+                store: {
+                  select: {
+                    storeName: true,
+                    storeAddress: true,
+                    phoneNumber: true,
+                    timeOpen: true,
+                    timeClose: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' }, // Order by newest orders first
+    });
+    
+    return orders;
+  } catch (error) {
+    console.error("Error in getOrderHistoryByUserIdService:", error);
+    throw new Error("Failed to fetch order history");
+  }
+};
+
+
+
+module.exports.getOrdersBySellerService = async (sellerId) => {
+  try {
+    console.log('Fetching store for seller ID:', sellerId);
+
+    const store = await prisma.store.findUnique({
+      where: {
+        userId: +sellerId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    console.log('Store found:', store);
+
+    if (!store) {
+      console.log('No store found for seller.');
+      return [];
+    }
+
+    const storeId = store.id;
+
+    const orders = await prisma.order.findMany({
+      where: {
+        orderItems: {
+          some: {
+            product: {
+              storeId: storeId,
+            },
+          },
+        },
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                imageUrl: true,
+                storeId: true,
+                store: {
+                  select: {
+                    storeName: true,
+                    storeAddress: true,
+                    phoneNumber: true,
+                    timeOpen: true,
+                    timeClose: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+            email: true,
+            profilePicture: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    console.log('Orders found:', orders);
+
+    return orders;
+  } catch (error) {
+    console.error("Error in getOrdersBySellerService:", error);
+    throw error; // Rethrow the original error for better debugging
+  }
+};
+
+module.exports.acceptOrderService = async (orderId, sellerId, userRole) => {
+  // Fetch the order
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      orderItems: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  // Verify ownership
+  const isSellerOfOrder = order.orderItems.some(
+    (item) => item.product.storeId === sellerId
+  );
+
+  if (!isSellerOfOrder && userRole !== 'SELLER') {
+    throw new Error("Unauthorized");
+  }
+
+  // Update the order
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: { isPickUpped: true },
+  });
+
+  return updatedOrder;
+};
+
+

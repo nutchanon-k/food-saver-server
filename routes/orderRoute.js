@@ -2,7 +2,7 @@ const express = require("express");
 const authorize = require("../middlewares/roleAuthorize");
 const { authenticate } = require("../middlewares/authenticate");
 const { createOrderValidator, updateOrderValidator } = require("../middlewares/validator");
-const { createOrder, getOrderById, getAllOrders, updateOrder, deleteOrder, getBuyerOrders, getOrderItemBySellerId,placeOrder,verifyOrder } = require("../controllers/orderController");
+const { createOrder, getOrderById, getAllOrders, updateOrder, deleteOrder, getBuyerOrders, getOrderItemBySellerId,placeOrder,verifyOrder,getOrderDetailsWithStore,getOrderHistoryByUserId,getOrdersBySeller,acceptOrder } = require("../controllers/orderController");
 const orderRoute = express.Router();
 
 // สร้าง Order ใหม่ (Authenticated Users - Buyer Only) พร้อม Validation
@@ -35,5 +35,18 @@ orderRoute.post('/verify', authenticate, authorize(['BUYER']), verifyOrder);
 // // New: Stripe Webhook Route (No Authentication or Authorization)
 // orderRoute.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
+// Route for fetching order details with store information for Buyer, Seller, and Admin
+orderRoute.get('/details/:id', authenticate, authorize(['BUYER', 'SELLER', 'ADMIN']), getOrderDetailsWithStore);
+
+// This route fetches all past orders of the user with detailed information about each order
+orderRoute.get('/history/:userId', authenticate, authorize(['BUYER','SELLER', 'ADMIN']), getOrderHistoryByUserId);
+
+// Route for fetching orders for the seller's store(s)
+orderRoute.get('/seller/orders', authenticate, authorize(['SELLER', 'ADMIN']), getOrdersBySeller);
+
+// New Route: Accept Order (Mark as Picked Up) - Seller/Admin Only
+orderRoute.patch('/:id/pickup',authenticate,authorize(['SELLER', 'ADMIN']),acceptOrder);
+  
+  module.exports = orderRoute;
 
 module.exports = orderRoute

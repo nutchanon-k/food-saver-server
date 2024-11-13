@@ -3,14 +3,13 @@ const jwt = require('jsonwebtoken')
 const createError = require('../utils/createError')
 const nodemailer = require('nodemailer')
 const bcrypt = require('bcryptjs');
+// const { admin, generateFirebaseToken } = require('../configs/firebaseAdmin'); 
 
 const { getUserByEmail, getUserById, updateUserService } = require("../services/userService");
 const { createUserService } = require("../services/authService");
 
 
-
-
-
+// Old version
 module.exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body
@@ -55,6 +54,56 @@ module.exports.login = async (req, res, next) => {
         next(err)
     }
 }
+
+
+
+// module.exports.login = async (req, res, next) => {
+//     try {
+//         const { email, password } = req.body;
+        
+//         // Check if user exists by email
+//         const user = await getUserByEmail(email);
+//         if (!user) {
+//             return createError(400, 'email is not registered');
+//         }
+
+//         // Compare password
+//         const passwordIsMatch = await bcrypt.compare(password, user.password);
+//         if (!passwordIsMatch) {
+//             return createError(400, 'email or password is incorrect');
+//         }
+
+//         // Generate backend JWT
+//         const payload = { id: user.id };
+//         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+//         // Generate Firebase custom token using the helper function
+//         const firebaseToken = await generateFirebaseToken(user.id.toString());
+
+//         // Send both tokens to the client
+//         res.status(200).json({
+//             message: 'login success',
+//             token, // backend JWT
+//             firebaseToken, // Firebase custom token
+//             user: {
+//                 id: user.id,
+//                 email: user.email,
+//                 firstName: user.firstName,
+//                 lastName: user.lastName,
+//                 role: user.role
+//             }
+//         });
+
+//     } catch (err) {
+//         next(err);
+//     }
+// };
+
+
+
+
+
+
 
 module.exports.register = async (req, res, next) => {
     try {
