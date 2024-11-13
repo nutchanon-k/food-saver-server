@@ -93,17 +93,18 @@ module.exports.deleteUser = async (req, res, next) => {
         console.log("id" , id)
         console.log("userId" , userId)
         // admin ลบได้ทุกคน ถ้าไม่ใช่ admin ลบได้แค่ตัวเอง
+        
         if (userRole !== 'ADMIN') {
             if (+id !== +userId) {
                 return createError(403, "Forbidden")
             }
         }
 
-        const user = await getUserById(id)
+        const user = await getUserById(+id)
         if (!user) {
             return createError(400, "User not found")
         }
-        const deletedUser = await deleteUserService(id)
+        const deletedUser = await deleteUserService(+id)
         res.status(200).json({
             message: 'Delete user success',
         })

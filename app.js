@@ -36,6 +36,7 @@ const notificationRoute = require("./routes/notificationRoute");
 const searchRoute = require("./routes/searchRoute");
 const adminRouter = require("./routes/adminRoute");
 const { authenticate } = require("./middlewares/authenticate");
+const sellerDashboardRoute = require("./routes/sellerDashboardRoute");
 
 
 // ตั้งค่า Rate Limiting
@@ -72,6 +73,7 @@ app.use('/categories', categoryRoute);
 app.use('/allergens', allergenRoute);
 app.use('/search', searchRoute);
 app.use('/data', adminRouter);
+app.use('/seller-data', sellerDashboardRoute);
 
 // error/not found
 app.use(errorMiddleware);

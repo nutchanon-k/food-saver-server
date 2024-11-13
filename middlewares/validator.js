@@ -434,6 +434,7 @@ const createProductSchema = Joi.object({
   // expirationDate,
   expirationDate: Joi.date()
     .optional()
+    .allow('', null)
     .messages({
       'date.base': `"expirationDate" should be a valid date`,
     }),
@@ -508,6 +509,7 @@ const updateProductSchema = Joi.object({
 
   expirationDate: Joi.date()
     .optional()
+    .allow('', null)
     .messages({
       'date.base': `"expirationDate" should be a valid date`,
     }),
@@ -759,7 +761,6 @@ const updateStoreSchema = Joi.object({
     }),
 
   timeOpen: Joi.string()
-    .pattern(timeRegex)
     .optional()
     .messages({
       'string.base': `"timeOpen" should be a valid time in HH:mm format`,
@@ -767,7 +768,6 @@ const updateStoreSchema = Joi.object({
     }),
 
   timeClose: Joi.string()
-    .pattern(timeRegex)
     .optional()
     .messages({
       'string.base': `"timeClose" should be a valid time in HH:mm format`,
