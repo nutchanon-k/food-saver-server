@@ -133,9 +133,9 @@ module.exports.getCartItems = async (req, res, next) => {
         }
         // console.log(cartItems)
         const getCartItems = await getCartItemsService(cartItems)
-        if(!getCartItems || getCartItems.length === 0) {
-            return createError(404, 'Cart items not found')
-        }
+        // if(!getCartItems || getCartItems.length === 0) {
+        //     return createError(404, 'Cart items not found')
+        // }
 
         res.status(200).json({ "message": "Get cart items success", "data": getCartItems })
     } catch (err) {
@@ -149,6 +149,7 @@ module.exports.updateCartItem = async (req, res, next) => {
         const userId = req.user.id
         const { quantity } = req.body
 
+        console.log("id from params", id)
         const cartItem = await getCartItemForCheckService({ where: { id: Number(id) } })
         if (!cartItem) {
             createError(400, 'Cart item not found')
