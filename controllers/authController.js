@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const createError = require('../utils/createError')
 const nodemailer = require('nodemailer')
 const bcrypt = require('bcryptjs');
-const { admin, generateFirebaseToken } = require('../configs/firebaseAdmin'); 
+// const { admin, generateFirebaseToken } = require('../configs/firebaseAdmin'); 
 
 const { getUserByEmail, getUserById, updateUserService } = require("../services/userService");
 const { createUserService } = require("../services/authService");
