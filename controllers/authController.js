@@ -214,7 +214,7 @@ module.exports.forgotPassword = async (req, res, next) => {
             return res.status(200).json({ message: 'email sent' });
         }
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '5m' });
-        const resetURL = `http://localhost:5173/forgetPassword/${token}`;
+        const resetURL = `${process.env.FRONTEND_URL}/forgetPassword/${token}`;
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
